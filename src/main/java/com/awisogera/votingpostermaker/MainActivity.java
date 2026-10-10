@@ -1,4 +1,4 @@
-package com.awasigogera.votingpostermaker;
+package com.awaisogera.votingpostermaker;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -8,88 +8,64 @@ import android.provider.MediaStore;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
-    private static final int PICK_A_IMAGE = 1;
-    private static final int PICK_B_IMAGE = 2;
+    private static final int PICK_IMAGE_A = 1;
+    private static final int PICK_IMAGE_B = 2;
 
     ImageView imageA;
     ImageView imageB;
 
-    Button addAButton;
+    Button addButton;
     Button addBButton;
-
-    TextView appTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
-
-        appTitle = findViewById(R.id.appTitle);
 
         imageA = findViewById(R.id.imageA);
         imageB = findViewById(R.id.imageB);
 
-        addAButton = findViewById(R.id.addAButton);
+        addButton = findViewById(R.id.addButton);
         addBButton = findViewById(R.id.addBButton);
 
-
-        addAButton.setOnClickListener(new View.OnClickListener() {
+        addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 Intent intent = new Intent(Intent.ACTION_PICK);
                 intent.setType("image/*");
-                startActivityForResult(intent, PICK_A_IMAGE);
-
+                startActivityForResult(intent, PICK_IMAGE_A);
             }
         });
-
 
         addBButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 Intent intent = new Intent(Intent.ACTION_PICK);
                 intent.setType("image/*");
-                startActivityForResult(intent, PICK_B_IMAGE);
-
+                startActivityForResult(intent, PICK_IMAGE_B);
             }
         });
-
     }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         super.onActivityResult(requestCode, resultCode, data);
 
-
-        if(resultCode == RESULT_OK && data != null){
+        if (resultCode == RESULT_OK && data != null) {
 
             Uri imageUri = data.getData();
 
-
-            if(requestCode == PICK_A_IMAGE){
-
+            if (requestCode == PICK_IMAGE_A) {
                 imageA.setImageURI(imageUri);
-
             }
 
-
-            if(requestCode == PICK_B_IMAGE){
-
+            if (requestCode == PICK_IMAGE_B) {
                 imageB.setImageURI(imageUri);
-
             }
-
         }
-
     }
-
 }
