@@ -20,20 +20,19 @@
         android:id="@+id/imageA"
         android:layout_width="match_parent"
         android:layout_height="180dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_launcher_background"/>
+        android:scaleType="centerCrop"/>
 
     <Button
         android:id="@+id/addButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Select Image A"/>
-        <ImageView
+
+    <ImageView
         android:id="@+id/imageB"
         android:layout_width="match_parent"
         android:layout_height="180dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/ic_launcher_background"/>
+        android:scaleType="centerCrop"/>
 
     <Button
         android:id="@+id/addBButton"
