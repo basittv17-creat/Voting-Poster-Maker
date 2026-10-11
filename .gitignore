@@ -1,0 +1,11 @@
+.gradle/
+build/
+app/build/
+local.properties
+*.backup
+*.jks
+*.apks
+aab-extracted/
+apk-extracted/
+bundletool.jar
+build-error.txt
