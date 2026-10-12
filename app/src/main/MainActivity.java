@@ -34,12 +34,20 @@ public class MainActivity extends Activity {
         EditText textInput = new EditText(this);
         textInput.setHint("Enter poster text");
 
+        Button increaseSize = new Button(this);
+        increaseSize.setText("Increase Size");
+
+        Button decreaseSize = new Button(this);
+        decreaseSize.setText("Decrease Size");
+
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
         layout.addView(photoA);
         layout.addView(photoB);
         layout.addView(textInput);
+        layout.addView(increaseSize);
+        layout.addView(decreaseSize);
         layout.addView(addText);
         layout.addView(posterView);
 
@@ -57,6 +65,14 @@ public class MainActivity extends Activity {
 
         addText.setOnClickListener(v -> {
             posterView.addText(textInput.getText().toString());
+        });
+
+        increaseSize.setOnClickListener(v -> {
+            posterView.increaseTextSize();
+        });
+
+        decreaseSize.setOnClickListener(v -> {
+            posterView.decreaseTextSize();
         });
     }
 
