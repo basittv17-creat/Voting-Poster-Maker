@@ -68,7 +68,17 @@ public void decreaseTextSize() {
     }
 }
 
+
+public void setTextColor(int color) {
+    if (activeText >= 0 && activeText < texts.size()) {
+        TextItem item = texts.get(activeText);
+        item.color = color;
+        invalidate();
+    }
+}
+
 private Bitmap loadBitmap(Uri uri) {
+
 
         try {
             return BitmapFactory.decodeStream(
