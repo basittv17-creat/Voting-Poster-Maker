@@ -17,6 +17,7 @@ import java.io.FileOutputStream;
 public class MainActivity extends Activity {
 
     private PosterView posterView;
+    private File savedPosterFile;
     private static final int PICK_A = 101;
     private static final int PICK_B = 102;
     private int currentPick;
@@ -105,6 +106,9 @@ public class MainActivity extends Activity {
         Button savePoster = new Button(this);
         savePoster.setText("Save Poster");
 
+        Button sharePoster = new Button(this);
+        sharePoster.setText("Share Poster");
+
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
@@ -133,6 +137,7 @@ public class MainActivity extends Activity {
         layout.addView(outlineOff);
         layout.addView(deleteText);
         layout.addView(savePoster);
+        layout.addView(sharePoster);
         layout.addView(addText);
         layout.addView(posterView);
 
@@ -236,6 +241,38 @@ public class MainActivity extends Activity {
             posterView.deleteActiveText();
         });
 
+
+        sharePoster.setOnClickListener(v -> {
+
+            if (savedPosterFile != null && savedPosterFile.exists()) {
+
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("image/png");
+
+                shareIntent.putExtra(
+                        Intent.EXTRA_STREAM,
+                        Uri.fromFile(savedPosterFile)
+                );
+
+                startActivity(
+                        Intent.createChooser(
+                                shareIntent,
+                                "Share Poster"
+                        )
+                );
+
+            } else {
+
+                Toast.makeText(
+                        this,
+                        "Save Poster First",
+                        Toast.LENGTH_SHORT
+                ).show();
+
+            }
+
+        });
+
         savePoster.setOnClickListener(v -> {
 
             Bitmap bitmap = posterView.savePosterBitmap();
@@ -244,7 +281,9 @@ public class MainActivity extends Activity {
                     Environment.DIRECTORY_PICTURES
             );
 
-            File file = new File(folder, "VotingPoster.png");
+            savedPosterFile = new File(folder, "VotingPoster.png");
+
+            File file = savedPosterFile;
 
             try {
 
