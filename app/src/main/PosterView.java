@@ -69,6 +69,14 @@ public void decreaseTextSize() {
 }
 
 
+public void setWhiteText() {
+    setTextColor(0xffffffff);
+}
+
+public void setYellowText() {
+    setTextColor(0xffffff00);
+}
+
 public void setTextColor(int color) {
     if (activeText >= 0 && activeText < texts.size()) {
         TextItem item = texts.get(activeText);
@@ -77,7 +85,30 @@ public void setTextColor(int color) {
     }
 }
 
+
+public void setLeftAlign() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        texts.get(activeText).align = 0;
+        invalidate();
+    }
+}
+
+public void setCenterAlign() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        texts.get(activeText).align = 1;
+        invalidate();
+    }
+}
+
+public void setRightAlign() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        texts.get(activeText).align = 2;
+        invalidate();
+    }
+}
+
 private Bitmap loadBitmap(Uri uri) {
+
 
 
         try {
@@ -192,7 +223,17 @@ private Bitmap loadBitmap(Uri uri) {
         for (TextItem item : texts) {
             textPaint.setColor(item.color);
             textPaint.setTextSize(item.size);
-            canvas.drawText(item.text, item.x, item.y, textPaint);
+            float drawX = item.x;
+
+            if (item.align == 1) {
+                drawX = item.x - (textPaint.measureText(item.text) / 2);
+            }
+
+            if (item.align == 2) {
+                drawX = item.x - textPaint.measureText(item.text);
+            }
+
+            canvas.drawText(item.text, drawX, item.y, textPaint);
         }
 
         if (imageA != null) {

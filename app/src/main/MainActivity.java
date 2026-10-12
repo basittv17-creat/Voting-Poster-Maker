@@ -49,6 +49,21 @@ public class MainActivity extends Activity {
         Button greenColor = new Button(this);
         greenColor.setText("Green Text");
 
+        Button whiteColor = new Button(this);
+        whiteColor.setText("White Text");
+
+        Button yellowColor = new Button(this);
+        yellowColor.setText("Yellow Text");
+
+        Button leftAlign = new Button(this);
+        leftAlign.setText("Left");
+
+        Button centerAlign = new Button(this);
+        centerAlign.setText("Center");
+
+        Button rightAlign = new Button(this);
+        rightAlign.setText("Right");
+
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
@@ -60,6 +75,11 @@ public class MainActivity extends Activity {
         layout.addView(redColor);
         layout.addView(blueColor);
         layout.addView(greenColor);
+        layout.addView(whiteColor);
+        layout.addView(yellowColor);
+        layout.addView(leftAlign);
+        layout.addView(centerAlign);
+        layout.addView(rightAlign);
         layout.addView(addText);
         layout.addView(posterView);
 
@@ -97,6 +117,26 @@ public class MainActivity extends Activity {
 
         greenColor.setOnClickListener(v -> {
             posterView.setTextColor(0xff00ff00);
+        });
+
+        whiteColor.setOnClickListener(v -> {
+            posterView.setWhiteText();
+        });
+
+        yellowColor.setOnClickListener(v -> {
+            posterView.setYellowText();
+        });
+
+        leftAlign.setOnClickListener(v -> {
+            posterView.setLeftAlign();
+        });
+
+        centerAlign.setOnClickListener(v -> {
+            posterView.setCenterAlign();
+        });
+
+        rightAlign.setOnClickListener(v -> {
+            posterView.setRightAlign();
         });
     }
 

@@ -7,6 +7,7 @@ public class TextItem {
     public float y;
     public float size;
     public int color;
+    public int align = 0;
 
     public TextItem(String text) {
         this.text = text;
