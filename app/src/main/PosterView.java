@@ -192,8 +192,15 @@ public void disableOutline() {
 
 public void deleteActiveText() {
     if (activeText >= 0 && activeText < texts.size()) {
+
         texts.remove(activeText);
-        activeText = -1;
+
+        if (texts.size() > 0) {
+            activeText = Math.min(activeText, texts.size() - 1);
+        } else {
+            activeText = -1;
+        }
+
         invalidate();
     }
 }
@@ -360,6 +367,23 @@ if (item.stroke) {
     textPaint.setStrokeWidth(4);
     textPaint.setColor(0xff000000);
     canvas.drawText(item.text, drawX, item.y, textPaint);
+
+            if (texts.indexOf(item) == activeText) {
+                textPaint.setStyle(Paint.Style.STROKE);
+                textPaint.setStrokeWidth(3);
+                textPaint.setColor(0xff00ff00);
+
+                canvas.drawRect(
+                    drawX - 15,
+                    item.y - 80,
+                    drawX + textPaint.measureText(item.text) + 15,
+                    item.y + 20,
+                    textPaint
+                );
+
+                textPaint.setStyle(Paint.Style.FILL);
+                textPaint.setColor(item.color);
+            }
     textPaint.setStyle(Paint.Style.FILL);
     textPaint.setColor(item.color);
 }
