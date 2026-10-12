@@ -10,20 +10,31 @@ import android.view.View;
 
 public class PosterView extends View {
 
-    private Bitmap image;
+    private Bitmap imageA;
+    private Bitmap imageB;
 
     public PosterView(Context context) {
         super(context);
     }
 
-    public void setImage(Uri uri) {
+    public void setImageA(Uri uri) {
+        imageA = loadBitmap(uri);
+        invalidate();
+    }
+
+    public void setImageB(Uri uri) {
+        imageB = loadBitmap(uri);
+        invalidate();
+    }
+
+    private Bitmap loadBitmap(Uri uri) {
         try {
-            image = BitmapFactory.decodeStream(
-                    getContext().getContentResolver().openInputStream(uri)
+            return BitmapFactory.decodeStream(
+                getContext().getContentResolver().openInputStream(uri)
             );
-            invalidate();
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
     }
 
@@ -33,9 +44,15 @@ public class PosterView extends View {
 
         canvas.drawColor(Color.rgb(239, 103, 210));
 
-        if (image != null) {
-            canvas.drawBitmap(image, null,
-                    new android.graphics.Rect(100, 100, 700, 700),
+        if (imageA != null) {
+            canvas.drawBitmap(imageA, null,
+                    new android.graphics.Rect(50, 100, 550, 600),
+                    null);
+        }
+
+        if (imageB != null) {
+            canvas.drawBitmap(imageB, null,
+                    new android.graphics.Rect(650, 100, 1150, 600),
                     null);
         }
     }

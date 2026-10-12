@@ -34,7 +34,7 @@ public class MainActivity extends Activity {
 
         if (requestCode == PICK_IMAGE && resultCode == RESULT_OK && data != null) {
             Uri imageUri = data.getData();
-            posterView.setImage(imageUri);
+            posterView.setImageA(imageUri);
         }
     }
 }
