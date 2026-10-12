@@ -8,6 +8,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.graphics.Bitmap;
+import android.os.Environment;
+import android.widget.Toast;
+import java.io.File;
+import java.io.FileOutputStream;
 
 public class MainActivity extends Activity {
 
@@ -97,6 +102,9 @@ public class MainActivity extends Activity {
         Button deleteText = new Button(this);
         deleteText.setText("Delete Text");
 
+        Button savePoster = new Button(this);
+        savePoster.setText("Save Poster");
+
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
@@ -124,6 +132,7 @@ public class MainActivity extends Activity {
         layout.addView(blackOutline);
         layout.addView(outlineOff);
         layout.addView(deleteText);
+        layout.addView(savePoster);
         layout.addView(addText);
         layout.addView(posterView);
 
@@ -225,6 +234,47 @@ public class MainActivity extends Activity {
 
         deleteText.setOnClickListener(v -> {
             posterView.deleteActiveText();
+        });
+
+        savePoster.setOnClickListener(v -> {
+
+            Bitmap bitmap = posterView.savePosterBitmap();
+
+            File folder = Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_PICTURES
+            );
+
+            File file = new File(folder, "VotingPoster.png");
+
+            try {
+
+                FileOutputStream out = new FileOutputStream(file);
+
+                bitmap.compress(
+                        Bitmap.CompressFormat.PNG,
+                        100,
+                        out
+                );
+
+                out.flush();
+                out.close();
+
+                Toast.makeText(
+                        this,
+                        "Poster Saved",
+                        Toast.LENGTH_SHORT
+                ).show();
+
+            } catch(Exception e) {
+
+                Toast.makeText(
+                        this,
+                        "Save Failed",
+                        Toast.LENGTH_SHORT
+                ).show();
+
+            }
+
         });
     }
 
