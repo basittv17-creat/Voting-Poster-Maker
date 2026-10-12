@@ -111,10 +111,32 @@ public class MainActivity extends Activity {
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(20,20,20,20);
+
+        TextView photoTitle = new TextView(this);
+        photoTitle.setText("PHOTO CONTROLS");
+        photoTitle.setTextSize(18);
+
+        TextView textTitle = new TextView(this);
+        textTitle.setText("TEXT CONTROLS");
+        textTitle.setTextSize(18);
+
+        TextView styleTitle = new TextView(this);
+        styleTitle.setText("STYLE CONTROLS");
+        styleTitle.setTextSize(18);
+
+        TextView exportTitle = new TextView(this);
+        exportTitle.setText("EXPORT CONTROLS");
+        exportTitle.setTextSize(18);
+
+        layout.addView(photoTitle);
 
         layout.addView(photoA);
         layout.addView(photoB);
+        layout.addView(textTitle);
+
         layout.addView(textInput);
+        layout.addView(addText);
         layout.addView(increaseSize);
         layout.addView(decreaseSize);
         layout.addView(redColor);
@@ -125,6 +147,8 @@ public class MainActivity extends Activity {
         layout.addView(leftAlign);
         layout.addView(centerAlign);
         layout.addView(rightAlign);
+        layout.addView(styleTitle);
+
         layout.addView(normalFont);
         layout.addView(boldFont);
         layout.addView(italicFont);
@@ -136,9 +160,10 @@ public class MainActivity extends Activity {
         layout.addView(blackOutline);
         layout.addView(outlineOff);
         layout.addView(deleteText);
+        layout.addView(exportTitle);
+
         layout.addView(savePoster);
         layout.addView(sharePoster);
-        layout.addView(addText);
         layout.addView(posterView);
 
         setContentView(layout);
