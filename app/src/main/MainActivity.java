@@ -85,6 +85,9 @@ public class MainActivity extends Activity {
         Button strokeOff = new Button(this);
         strokeOff.setText("Stroke OFF");
 
+        Button deleteText = new Button(this);
+        deleteText.setText("Delete Text");
+
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
@@ -108,6 +111,7 @@ public class MainActivity extends Activity {
         layout.addView(shadowOff);
         layout.addView(strokeOn);
         layout.addView(strokeOff);
+        layout.addView(deleteText);
         layout.addView(addText);
         layout.addView(posterView);
 
@@ -193,6 +197,10 @@ public class MainActivity extends Activity {
 
         strokeOff.setOnClickListener(v -> {
             posterView.disableTextStroke();
+        });
+
+        deleteText.setOnClickListener(v -> {
+            posterView.deleteActiveText();
         });
     }
 

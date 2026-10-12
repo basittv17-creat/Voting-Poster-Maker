@@ -163,7 +163,46 @@ public void disableTextStroke() {
     }
 }
 
+
+public void setWhiteOutline() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        texts.get(activeText).outline = true;
+        texts.get(activeText).outlineColor = 0xffffffff;
+        invalidate();
+    }
+}
+
+
+public void setBlackOutline() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        texts.get(activeText).outline = true;
+        texts.get(activeText).outlineColor = 0xff000000;
+        invalidate();
+    }
+}
+
+
+public void disableOutline() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        texts.get(activeText).outline = false;
+        invalidate();
+    }
+}
+
+
+public void deleteActiveText() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        texts.remove(activeText);
+        activeText = -1;
+        invalidate();
+    }
+}
+
 private Bitmap loadBitmap(Uri uri) {
+
+
+
+
 
 
 
@@ -315,16 +354,26 @@ if (item.shadow) {
     textPaint.clearShadowLayer();
 }
 
+
 if (item.stroke) {
     textPaint.setStyle(Paint.Style.STROKE);
     textPaint.setStrokeWidth(4);
     textPaint.setColor(0xff000000);
     canvas.drawText(item.text, drawX, item.y, textPaint);
     textPaint.setStyle(Paint.Style.FILL);
+    textPaint.setColor(item.color);
+}
+
+if (item.outline) {
+    textPaint.setStyle(Paint.Style.STROKE);
+    textPaint.setStrokeWidth(item.outlineWidth);
+    textPaint.setColor(item.outlineColor);
+    canvas.drawText(item.text, drawX, item.y, textPaint);
+    textPaint.setStyle(Paint.Style.FILL);
+    textPaint.setColor(item.color);
 }
 
 canvas.drawText(item.text, drawX, item.y, textPaint);
-        }
 
         if (imageA != null) {
             canvas.drawBitmap(imageA, null,

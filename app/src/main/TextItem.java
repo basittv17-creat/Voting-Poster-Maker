@@ -11,6 +11,9 @@ public class TextItem {
     public int style = 0;
     public boolean shadow = false;
     public boolean stroke = false;
+    public boolean outline = false;
+    public int outlineColor = 0xff000000;
+    public float outlineWidth = 4;
 
     public TextItem(String text) {
         this.text = text;
