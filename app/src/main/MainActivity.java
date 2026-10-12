@@ -27,11 +27,15 @@ public class MainActivity extends Activity {
         Button photoB = new Button(this);
         photoB.setText("Add Photo B");
 
+        Button addText = new Button(this);
+        addText.setText("Add Text");
+
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
         layout.addView(photoA);
         layout.addView(photoB);
+        layout.addView(addText);
         layout.addView(posterView);
 
         setContentView(layout);
@@ -44,6 +48,10 @@ public class MainActivity extends Activity {
         photoB.setOnClickListener(v -> {
             currentPick = PICK_B;
             openGallery();
+        });
+
+        addText.setOnClickListener(v -> {
+            posterView.addText("Voting Poster");
         });
     }
 
