@@ -13,6 +13,9 @@ public class PosterView extends View {
     private Bitmap imageA;
     private Bitmap imageB;
 
+    private int ax = 50, ay = 100;
+    private int bx = 650, by = 100;
+
     public PosterView(Context context) {
         super(context);
     }
@@ -46,13 +49,13 @@ public class PosterView extends View {
 
         if (imageA != null) {
             canvas.drawBitmap(imageA, null,
-                    new android.graphics.Rect(50, 100, 550, 600),
+                    new android.graphics.Rect(ax, ay, ax + 500, ay + 500),
                     null);
         }
 
         if (imageB != null) {
             canvas.drawBitmap(imageB, null,
-                    new android.graphics.Rect(650, 100, 1150, 600),
+                    new android.graphics.Rect(bx, by, bx + 500, by + 500),
                     null);
         }
     }
