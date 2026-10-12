@@ -8,6 +8,9 @@ public class TextItem {
     public float size;
     public int color;
     public int align = 0;
+    public int style = 0;
+    public boolean shadow = false;
+    public boolean stroke = false;
 
     public TextItem(String text) {
         this.text = text;

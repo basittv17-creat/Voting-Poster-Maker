@@ -64,6 +64,27 @@ public class MainActivity extends Activity {
         Button rightAlign = new Button(this);
         rightAlign.setText("Right");
 
+        Button normalFont = new Button(this);
+        normalFont.setText("Normal");
+
+        Button boldFont = new Button(this);
+        boldFont.setText("Bold");
+
+        Button italicFont = new Button(this);
+        italicFont.setText("Italic");
+
+        Button shadowOn = new Button(this);
+        shadowOn.setText("Shadow ON");
+
+        Button shadowOff = new Button(this);
+        shadowOff.setText("Shadow OFF");
+
+        Button strokeOn = new Button(this);
+        strokeOn.setText("Stroke ON");
+
+        Button strokeOff = new Button(this);
+        strokeOff.setText("Stroke OFF");
+
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
@@ -80,6 +101,13 @@ public class MainActivity extends Activity {
         layout.addView(leftAlign);
         layout.addView(centerAlign);
         layout.addView(rightAlign);
+        layout.addView(normalFont);
+        layout.addView(boldFont);
+        layout.addView(italicFont);
+        layout.addView(shadowOn);
+        layout.addView(shadowOff);
+        layout.addView(strokeOn);
+        layout.addView(strokeOff);
         layout.addView(addText);
         layout.addView(posterView);
 
@@ -137,6 +165,34 @@ public class MainActivity extends Activity {
 
         rightAlign.setOnClickListener(v -> {
             posterView.setRightAlign();
+        });
+
+        normalFont.setOnClickListener(v -> {
+            posterView.setNormalText();
+        });
+
+        boldFont.setOnClickListener(v -> {
+            posterView.setBoldText();
+        });
+
+        italicFont.setOnClickListener(v -> {
+            posterView.setItalicText();
+        });
+
+        shadowOn.setOnClickListener(v -> {
+            posterView.enableTextShadow();
+        });
+
+        shadowOff.setOnClickListener(v -> {
+            posterView.disableTextShadow();
+        });
+
+        strokeOn.setOnClickListener(v -> {
+            posterView.enableTextStroke();
+        });
+
+        strokeOff.setOnClickListener(v -> {
+            posterView.disableTextStroke();
         });
     }
 

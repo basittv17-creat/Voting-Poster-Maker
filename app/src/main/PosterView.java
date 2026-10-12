@@ -107,7 +107,70 @@ public void setRightAlign() {
     }
 }
 
+
+public void setBoldText() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        texts.get(activeText).style = 1;
+        invalidate();
+    }
+}
+
+
+public void setItalicText() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        texts.get(activeText).style = 2;
+        invalidate();
+    }
+}
+
+
+public void setNormalText() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        texts.get(activeText).style = 0;
+        invalidate();
+    }
+}
+
+
+public void enableTextShadow() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        texts.get(activeText).shadow = true;
+        invalidate();
+    }
+}
+
+
+public void disableTextShadow() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        texts.get(activeText).shadow = false;
+        invalidate();
+    }
+}
+
+
+public void enableTextStroke() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        texts.get(activeText).stroke = true;
+        invalidate();
+    }
+}
+
+
+public void disableTextStroke() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        texts.get(activeText).stroke = false;
+        invalidate();
+    }
+}
+
 private Bitmap loadBitmap(Uri uri) {
+
+
+
+
+
+
+
 
 
 
@@ -233,7 +296,34 @@ private Bitmap loadBitmap(Uri uri) {
                 drawX = item.x - textPaint.measureText(item.text);
             }
 
-            canvas.drawText(item.text, drawX, item.y, textPaint);
+            
+if (item.style == 1) {
+    textPaint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+}
+
+if (item.style == 2) {
+    textPaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.ITALIC));
+}
+
+if (item.style == 0) {
+    textPaint.setTypeface(android.graphics.Typeface.DEFAULT);
+}
+
+if (item.shadow) {
+    textPaint.setShadowLayer(8, 4, 4, 0xff000000);
+} else {
+    textPaint.clearShadowLayer();
+}
+
+if (item.stroke) {
+    textPaint.setStyle(Paint.Style.STROKE);
+    textPaint.setStrokeWidth(4);
+    textPaint.setColor(0xff000000);
+    canvas.drawText(item.text, drawX, item.y, textPaint);
+    textPaint.setStyle(Paint.Style.FILL);
+}
+
+canvas.drawText(item.text, drawX, item.y, textPaint);
         }
 
         if (imageA != null) {
