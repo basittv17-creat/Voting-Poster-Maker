@@ -51,7 +51,25 @@ public class PosterView extends View {
         invalidate();
     }
 
-    private Bitmap loadBitmap(Uri uri) {
+    
+public void increaseTextSize() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        TextItem item = texts.get(activeText);
+        item.size += 10;
+        invalidate();
+    }
+}
+
+public void decreaseTextSize() {
+    if (activeText >= 0 && activeText < texts.size()) {
+        TextItem item = texts.get(activeText);
+        item.size = Math.max(10, item.size - 10);
+        invalidate();
+    }
+}
+
+private Bitmap loadBitmap(Uri uri) {
+
         try {
             return BitmapFactory.decodeStream(
                     getContext().getContentResolver().openInputStream(uri)
