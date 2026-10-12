@@ -23,6 +23,8 @@ public class PosterView extends View {
 
     private int activePhoto = 0;
     private float lastX, lastY;
+    private float startDistance;
+    private float startScale;
 
     public PosterView(Context context) {
         super(context);
@@ -58,6 +60,13 @@ public class PosterView extends View {
             lastX = x;
             lastY = y;
 
+            if (event.getPointerCount() == 2) {
+                float dx = event.getX(1) - event.getX(0);
+                float dy = event.getY(1) - event.getY(0);
+                startDistance = (float)Math.sqrt(dx * dx + dy * dy);
+                startScale = activePhoto == 1 ? scaleA : scaleB;
+            }
+
             if (imageA != null && new RectF(ax, ay, ax + 500, ay + 500).contains(x, y)) {
                 activePhoto = 1;
             } else if (imageB != null && new RectF(bx, by, bx + 500, by + 500).contains(x, y)) {
@@ -65,7 +74,29 @@ public class PosterView extends View {
             }
         }
 
-        if (event.getAction() == MotionEvent.ACTION_MOVE) {
+        if (event.getPointerCount() == 2 && event.getAction() == MotionEvent.ACTION_MOVE) {
+
+            float dx = event.getX(1) - event.getX(0);
+            float dy = event.getY(1) - event.getY(0);
+            float distance = (float)Math.sqrt(dx * dx + dy * dy);
+
+            if (startDistance > 0) {
+                float factor = distance / startDistance;
+
+                if (activePhoto == 1) {
+                    scaleA = Math.max(0.5f, Math.min(startScale * factor, 3f));
+                }
+
+                if (activePhoto == 2) {
+                    scaleB = Math.max(0.5f, Math.min(startScale * factor, 3f));
+                }
+
+                invalidate();
+            }
+            return true;
+        }
+
+        if (event.getAction() == MotionEvent.ACTION_MOVE)
 
             float dx = x - lastX;
             float dy = y - lastY;
