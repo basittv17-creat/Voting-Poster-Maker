@@ -40,6 +40,15 @@ public class MainActivity extends Activity {
         Button decreaseSize = new Button(this);
         decreaseSize.setText("Decrease Size");
 
+        Button redColor = new Button(this);
+        redColor.setText("Red Text");
+
+        Button blueColor = new Button(this);
+        blueColor.setText("Blue Text");
+
+        Button greenColor = new Button(this);
+        greenColor.setText("Green Text");
+
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
@@ -48,6 +57,9 @@ public class MainActivity extends Activity {
         layout.addView(textInput);
         layout.addView(increaseSize);
         layout.addView(decreaseSize);
+        layout.addView(redColor);
+        layout.addView(blueColor);
+        layout.addView(greenColor);
         layout.addView(addText);
         layout.addView(posterView);
 
@@ -73,6 +85,18 @@ public class MainActivity extends Activity {
 
         decreaseSize.setOnClickListener(v -> {
             posterView.decreaseTextSize();
+        });
+
+        redColor.setOnClickListener(v -> {
+            posterView.setTextColor(0xffff0000);
+        });
+
+        blueColor.setOnClickListener(v -> {
+            posterView.setTextColor(0xff0000ff);
+        });
+
+        greenColor.setOnClickListener(v -> {
+            posterView.setTextColor(0xff00ff00);
         });
     }
 
