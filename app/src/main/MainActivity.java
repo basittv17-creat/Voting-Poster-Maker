@@ -85,6 +85,15 @@ public class MainActivity extends Activity {
         Button strokeOff = new Button(this);
         strokeOff.setText("Stroke OFF");
 
+        Button whiteOutline = new Button(this);
+        whiteOutline.setText("White Outline");
+
+        Button blackOutline = new Button(this);
+        blackOutline.setText("Black Outline");
+
+        Button outlineOff = new Button(this);
+        outlineOff.setText("Outline OFF");
+
         Button deleteText = new Button(this);
         deleteText.setText("Delete Text");
 
@@ -111,6 +120,9 @@ public class MainActivity extends Activity {
         layout.addView(shadowOff);
         layout.addView(strokeOn);
         layout.addView(strokeOff);
+        layout.addView(whiteOutline);
+        layout.addView(blackOutline);
+        layout.addView(outlineOff);
         layout.addView(deleteText);
         layout.addView(addText);
         layout.addView(posterView);
@@ -197,6 +209,18 @@ public class MainActivity extends Activity {
 
         strokeOff.setOnClickListener(v -> {
             posterView.disableTextStroke();
+        });
+
+        whiteOutline.setOnClickListener(v -> {
+            posterView.setWhiteOutline();
+        });
+
+        blackOutline.setOnClickListener(v -> {
+            posterView.setBlackOutline();
+        });
+
+        outlineOff.setOnClickListener(v -> {
+            posterView.disableOutline();
         });
 
         deleteText.setOnClickListener(v -> {
