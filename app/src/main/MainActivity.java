@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 
 public class MainActivity extends Activity {
@@ -30,11 +31,15 @@ public class MainActivity extends Activity {
         Button addText = new Button(this);
         addText.setText("Add Text");
 
+        EditText textInput = new EditText(this);
+        textInput.setHint("Enter poster text");
+
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
 
         layout.addView(photoA);
         layout.addView(photoB);
+        layout.addView(textInput);
         layout.addView(addText);
         layout.addView(posterView);
 
@@ -51,7 +56,7 @@ public class MainActivity extends Activity {
         });
 
         addText.setOnClickListener(v -> {
-            posterView.addText("Voting Poster");
+            posterView.addText(textInput.getText().toString());
         });
     }
 
