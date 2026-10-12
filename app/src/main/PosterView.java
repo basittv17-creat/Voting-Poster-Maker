@@ -5,7 +5,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.RectF;
 import android.net.Uri;
+import android.view.MotionEvent;
 import android.view.View;
 
 public class PosterView extends View {
@@ -13,8 +15,14 @@ public class PosterView extends View {
     private Bitmap imageA;
     private Bitmap imageB;
 
-    private int ax = 50, ay = 100;
-    private int bx = 650, by = 100;
+    private float ax = 50, ay = 100;
+    private float bx = 650, by = 100;
+
+    private float scaleA = 1f;
+    private float scaleB = 1f;
+
+    private int activePhoto = 0;
+    private float lastX, lastY;
 
     public PosterView(Context context) {
         super(context);
@@ -33,12 +41,55 @@ public class PosterView extends View {
     private Bitmap loadBitmap(Uri uri) {
         try {
             return BitmapFactory.decodeStream(
-                getContext().getContentResolver().openInputStream(uri)
+                    getContext().getContentResolver().openInputStream(uri)
             );
         } catch (Exception e) {
-            e.printStackTrace();
             return null;
         }
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+
+        float x = event.getX();
+        float y = event.getY();
+
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            lastX = x;
+            lastY = y;
+
+            if (imageA != null && new RectF(ax, ay, ax + 500, ay + 500).contains(x, y)) {
+                activePhoto = 1;
+            } else if (imageB != null && new RectF(bx, by, bx + 500, by + 500).contains(x, y)) {
+                activePhoto = 2;
+            }
+        }
+
+        if (event.getAction() == MotionEvent.ACTION_MOVE) {
+
+            float dx = x - lastX;
+            float dy = y - lastY;
+
+            if (activePhoto == 1) {
+                ax += dx;
+                ay += dy;
+            }
+
+            if (activePhoto == 2) {
+                bx += dx;
+                by += dy;
+            }
+
+            lastX = x;
+            lastY = y;
+            invalidate();
+        }
+
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+            activePhoto = 0;
+        }
+
+        return true;
     }
 
     @Override
@@ -49,13 +100,13 @@ public class PosterView extends View {
 
         if (imageA != null) {
             canvas.drawBitmap(imageA, null,
-                    new android.graphics.Rect(ax, ay, ax + 500, ay + 500),
+                    new RectF(ax, ay, ax + 500 * scaleA, ay + 500 * scaleA),
                     null);
         }
 
         if (imageB != null) {
             canvas.drawBitmap(imageB, null,
-                    new android.graphics.Rect(bx, by, bx + 500, by + 500),
+                    new RectF(bx, by, bx + 500 * scaleB, by + 500 * scaleB),
                     null);
         }
     }
