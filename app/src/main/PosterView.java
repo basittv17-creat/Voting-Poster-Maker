@@ -27,6 +27,7 @@ public class PosterView extends View {
     private float scaleB = 1f;
 
     private int activePhoto = 0;
+    private int activeText = -1;
     private float lastX, lastY;
     private float startDistance;
     private float startScale;
@@ -77,7 +78,15 @@ public class PosterView extends View {
                 startScale = activePhoto == 1 ? scaleA : scaleB;
             }
 
-            if (imageA != null && new RectF(ax, ay, ax + 500, ay + 500).contains(x, y)) {
+            for (int i = 0; i < texts.size(); i++) {
+                TextItem item = texts.get(i);
+                if (new RectF(item.x, item.y - item.size, item.x + 400, item.y).contains(x, y)) {
+                    activeText = i;
+                    break;
+                }
+            }
+
+            if (activeText == -1 && imageA != null && new RectF(ax, ay, ax + 500, ay + 500).contains(x, y)) {
                 activePhoto = 1;
             } else if (imageB != null && new RectF(bx, by, bx + 500, by + 500).contains(x, y)) {
                 activePhoto = 2;
@@ -93,7 +102,13 @@ public class PosterView extends View {
             if (startDistance > 0) {
                 float factor = distance / startDistance;
 
-                if (activePhoto == 1) {
+                if (activeText >= 0) {
+                TextItem item = texts.get(activeText);
+                item.x += dx;
+                item.y += dy;
+            }
+
+            if (activeText < 0 && activePhoto == 1) {
                     scaleA = Math.max(0.5f, Math.min(startScale * factor, 3f));
                 }
 
@@ -111,7 +126,13 @@ public class PosterView extends View {
             float dx = x - lastX;
             float dy = y - lastY;
 
-            if (activePhoto == 1) {
+            if (activeText >= 0) {
+                TextItem item = texts.get(activeText);
+                item.x += dx;
+                item.y += dy;
+            }
+
+            if (activeText < 0 && activePhoto == 1) {
                 ax += dx;
                 ay += dy;
             }
