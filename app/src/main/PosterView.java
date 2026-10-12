@@ -9,11 +9,16 @@ import android.graphics.RectF;
 import android.net.Uri;
 import android.view.MotionEvent;
 import android.view.View;
+import java.util.ArrayList;
+import android.graphics.Paint;
 
 public class PosterView extends View {
 
     private Bitmap imageA;
     private Bitmap imageB;
+
+    private ArrayList<TextItem> texts = new ArrayList<>();
+    private Paint textPaint = new Paint();
 
     private float ax = 50, ay = 100;
     private float bx = 650, by = 100;
@@ -37,6 +42,11 @@ public class PosterView extends View {
 
     public void setImageB(Uri uri) {
         imageB = loadBitmap(uri);
+        invalidate();
+    }
+
+    public void addText(String value) {
+        texts.add(new TextItem(value));
         invalidate();
     }
 
@@ -128,6 +138,13 @@ public class PosterView extends View {
         super.onDraw(canvas);
 
         canvas.drawColor(Color.rgb(239, 103, 210));
+
+        textPaint.setTextSize(50);
+        for (TextItem item : texts) {
+            textPaint.setColor(item.color);
+            textPaint.setTextSize(item.size);
+            canvas.drawText(item.text, item.x, item.y, textPaint);
+        }
 
         if (imageA != null) {
             canvas.drawBitmap(imageA, null,
