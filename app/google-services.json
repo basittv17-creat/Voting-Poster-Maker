@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "666047709407",
+    "project_id": "voting-poster-maker",
+    "storage_bucket": "voting-poster-maker.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:666047709407:android:d1bfced662760f3ad9696a",
+        "android_client_info": {
+          "package_name": "com.awisogera.votingpostermaker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEesfHFxF_A3NAec-vwGsYnPjnYfKl4NA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
