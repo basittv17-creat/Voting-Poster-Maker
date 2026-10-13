@@ -1,43 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+<ScrollView
+xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="match_parent">
+
 <LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+android:orientation="vertical"
+android:padding="16dp"
+android:layout_width="match_parent"
+android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/appTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Voting Poster Maker"
-        android:textSize="24sp"
-        android:gravity="center"
-        android:padding="10dp"/>
 
-    <ImageView
-        android:id="@+id/imageA"
-        android:layout_width="match_parent"
-        android:layout_height="180dp"
-        android:scaleType="centerCrop"/>
+<TextView
+android:text="Voting Poster Maker"
+android:textSize="24sp"
+android:gravity="center"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"/>
 
-    <Button
-        android:id="@+id/addButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Select Image A"/>
 
-    <ImageView
-        android:id="@+id/imageB"
-        android:layout_width="match_parent"
-        android:layout_height="180dp"
-        android:scaleType="centerCrop"/>
+<ImageView
+android:id="@+id/imageA"
+android:layout_width="match_parent"
+android:layout_height="150dp"/>
 
-    <Button
-        android:id="@+id/addBButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Select Image B"/>
+
+<Button
+android:id="@+id/addTextButton"
+android:text="Add Text"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"/>
+
+
+<Button
+android:id="@+id/boldButton"
+android:text="Bold"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"/>
+
+
+<Button
+android:id="@+id/italicButton"
+android:text="Italic"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"/>
+
+
+<Button
+android:id="@+id/normalButton"
+android:text="Normal"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"/>
+
+
+<Button
+android:id="@+id/centerButton"
+android:text="Center Text"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"/>
+
+
+<Button
+android:id="@+id/shadowButton"
+android:text="Text Shadow"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"/>
+
+
+<Button
+android:id="@+id/outlineButton"
+android:text="Text Outline"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"/>
+
+
+<Button
+android:id="@+id/deleteTextButton"
+android:text="Delete Text"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"/>
+
+
+<Button
+android:id="@+id/saveButton"
+android:text="Save Poster"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"/>
+
 
 </LinearLayout>
+
+</ScrollView>
