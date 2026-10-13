@@ -344,87 +344,57 @@ private Bitmap loadBitmap(Uri uri) {
 
         canvas.drawColor(Color.rgb(239, 103, 210));
 
-        textPaint.setTextSize(50);
-        for (TextItem item : texts) {
-            textPaint.setColor(item.color);
-            textPaint.setTextSize(item.size);
-            float drawX = item.x;
-
-            if (item.align == 1) {
-                drawX = item.x - (textPaint.measureText(item.text) / 2);
-            }
-
-            if (item.align == 2) {
-                drawX = item.x - textPaint.measureText(item.text);
-            }
-
-            
-if (item.style == 1) {
-    textPaint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
-}
-
-if (item.style == 2) {
-    textPaint.setTypeface(android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.ITALIC));
-}
-
-if (item.style == 0) {
-    textPaint.setTypeface(android.graphics.Typeface.DEFAULT);
-}
-
-if (item.shadow) {
-    textPaint.setShadowLayer(8, 4, 4, 0xff000000);
-} else {
-    textPaint.clearShadowLayer();
-}
-
-
-if (item.stroke) {
-    textPaint.setStyle(Paint.Style.STROKE);
-    textPaint.setStrokeWidth(4);
-    textPaint.setColor(0xff000000);
-    canvas.drawText(item.text, drawX, item.y, textPaint);
-
-            if (texts.indexOf(item) == activeText) {
-                textPaint.setStyle(Paint.Style.STROKE);
-                textPaint.setStrokeWidth(3);
-                textPaint.setColor(0xff00ff00);
-
-                canvas.drawRect(
-                    drawX - 15,
-                    item.y - 80,
-                    drawX + textPaint.measureText(item.text) + 15,
-                    item.y + 20,
-                    textPaint
-                );
-
-                textPaint.setStyle(Paint.Style.FILL);
-                textPaint.setColor(item.color);
-            }
-    textPaint.setStyle(Paint.Style.FILL);
-    textPaint.setColor(item.color);
-}
-
-if (item.outline) {
-    textPaint.setStyle(Paint.Style.STROKE);
-    textPaint.setStrokeWidth(item.outlineWidth);
-    textPaint.setColor(item.outlineColor);
-    canvas.drawText(item.text, drawX, item.y, textPaint);
-    textPaint.setStyle(Paint.Style.FILL);
-    textPaint.setColor(item.color);
-}
-
-canvas.drawText(item.text, drawX, item.y, textPaint);
-
         if (imageA != null) {
-            canvas.drawBitmap(imageA, null,
-                    new RectF(ax, ay, ax + 500 * scaleA, ay + 500 * scaleA),
-                    null);
+            canvas.drawBitmap(
+                imageA,
+                null,
+                new RectF(ax, ay, ax + 500 * scaleA, ay + 500 * scaleA),
+                null
+            );
         }
 
         if (imageB != null) {
-            canvas.drawBitmap(imageB, null,
-                    new RectF(bx, by, bx + 500 * scaleB, by + 500 * scaleB),
-                    null);
+            canvas.drawBitmap(
+                imageB,
+                null,
+                new RectF(bx, by, bx + 500 * scaleB, by + 500 * scaleB),
+                null
+            );
+        }
+
+        for (TextItem item : texts) {
+
+            textPaint.setTextSize(item.size);
+            textPaint.setColor(item.color);
+
+            if (item.style == 1) {
+                textPaint.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+            } else if (item.style == 2) {
+                textPaint.setTypeface(android.graphics.Typeface.create(
+                    android.graphics.Typeface.DEFAULT,
+                    android.graphics.Typeface.ITALIC
+                ));
+            } else {
+                textPaint.setTypeface(android.graphics.Typeface.DEFAULT);
+            }
+
+            float drawX = item.x;
+
+            if (item.align == 1) {
+                drawX -= textPaint.measureText(item.text) / 2;
+            }
+
+            if (item.align == 2) {
+                drawX -= textPaint.measureText(item.text);
+            }
+
+            if (item.shadow) {
+                textPaint.setShadowLayer(8,4,4,0xff000000);
+            } else {
+                textPaint.clearShadowLayer();
+            }
+
+            textPaint.setStyle(Paint.Style.FILL);
+            canvas.drawText(item.text, drawX, item.y, textPaint);
         }
     }
-}
