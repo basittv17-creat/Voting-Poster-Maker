@@ -58,5 +58,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
+        <com.awisogera.votingpostermaker.PosterView
+            android:id="@+id/posterView"
+            android:layout_width="match_parent"
+            android:layout_height="400dp" />
+
     </LinearLayout>
 </ScrollView>

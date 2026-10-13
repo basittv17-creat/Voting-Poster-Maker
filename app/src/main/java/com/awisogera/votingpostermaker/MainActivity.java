@@ -13,6 +13,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
+    PosterView posterView;
+
+
     ImageView imageA;
     ImageView imageB;
 
@@ -26,6 +29,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        posterView = findViewById(R.id.posterView);
+
 
         imageA = findViewById(R.id.imageA);
         imageB = findViewById(R.id.imageB);
@@ -41,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
                         Uri imageUri = result.getData().getData();
                         if (imageUri != null) {
                             imageA.setImageURI(imageUri);
+                            posterView.setImageA(imageUri);
                         }
                     }
                 }
@@ -54,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
                         Uri imageUri = result.getData().getData();
                         if (imageUri != null) {
                             imageB.setImageURI(imageUri);
+                            posterView.setImageB(imageUri);
                         }
                     }
                 }
