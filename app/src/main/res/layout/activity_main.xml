@@ -1,94 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <ScrollView
-xmlns:android="http://schemas.android.com/apk/res/android"
-android:layout_width="match_parent"
-android:layout_height="match_parent">
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
-<LinearLayout
-android:orientation="vertical"
-android:padding="16dp"
-android:layout_width="match_parent"
-android:layout_height="wrap_content">
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
+        <TextView
+            android:text="Voting Poster Maker"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
-<TextView
-android:text="Voting Poster Maker"
-android:textSize="24sp"
-android:gravity="center"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"/>
+        <TextView
+            android:text="Candidate A Image:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
+        <ImageView
+            android:id="@+id/imageA"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:scaleType="centerCrop"
+            android:background="#DDDDDD"
+            android:layout_marginBottom="12dp"/>
 
-<ImageView
-android:id="@+id/imageA"
-android:layout_width="match_parent"
-android:layout_height="150dp"/>
+        <Button
+            android:id="@+id/addButton"
+            android:text="Select Image A"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"/>
 
+        <TextView
+            android:text="Candidate B Image:"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
-<Button
-android:id="@+id/addTextButton"
-android:text="Add Text"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"/>
+        <ImageView
+            android:id="@+id/imageB"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:scaleType="centerCrop"
+            android:background="#DDDDDD"
+            android:layout_marginBottom="12dp"/>
 
+        <Button
+            android:id="@+id/addBButton"
+            android:text="Select Image B"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
-<Button
-android:id="@+id/boldButton"
-android:text="Bold"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"/>
-
-
-<Button
-android:id="@+id/italicButton"
-android:text="Italic"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"/>
-
-
-<Button
-android:id="@+id/normalButton"
-android:text="Normal"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"/>
-
-
-<Button
-android:id="@+id/centerButton"
-android:text="Center Text"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"/>
-
-
-<Button
-android:id="@+id/shadowButton"
-android:text="Text Shadow"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"/>
-
-
-<Button
-android:id="@+id/outlineButton"
-android:text="Text Outline"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"/>
-
-
-<Button
-android:id="@+id/deleteTextButton"
-android:text="Delete Text"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"/>
-
-
-<Button
-android:id="@+id/saveButton"
-android:text="Save Poster"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"/>
-
-
-</LinearLayout>
-
+    </LinearLayout>
 </ScrollView>
