@@ -305,7 +305,7 @@ private Bitmap loadBitmap(Uri uri) {
             return true;
         }
 
-        if (event.getAction() == MotionEvent.ACTION_MOVE)
+        if (event.getAction() == MotionEvent.ACTION_MOVE) {
 
             float dx = x - lastX;
             float dy = y - lastY;
