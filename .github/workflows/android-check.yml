@@ -28,11 +28,14 @@ jobs:
       - name: Clean project
         run: ./gradlew clean
 
-      - name: Run lint
-        run: ./gradlew lint
+      - name: Run lint (strict)
+        run: ./gradlew lint --warning-mode fail
 
       - name: Run tests
         run: ./gradlew test
 
       - name: Build debug APK
         run: ./gradlew assembleDebug
+
+      - name: Build release APK check
+        run: ./gradlew assembleRelease
