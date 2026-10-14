@@ -1,6 +1,7 @@
 package com.awisogera.votingpostermaker;
 
 import android.content.Context;
+import android.util.AttributeSet;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -34,6 +35,10 @@ public class PosterView extends View {
 
     public PosterView(Context context) {
         super(context);
+    }
+
+    public PosterView(Context context, AttributeSet attrs) {
+        super(context, attrs);
     }
 
     public void setImageA(Uri uri) {
