@@ -10,9 +10,11 @@ on:
 
 jobs:
   test-and-check:
+
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout source
         uses: actions/checkout@v4
 
@@ -28,7 +30,7 @@ jobs:
       - name: Clean project
         run: ./gradlew clean
 
-      - name: Run lint (strict)
+      - name: Run lint
         run: ./gradlew lint --warning-mode fail
 
       - name: Run tests
@@ -37,5 +39,17 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug
 
-      - name: Build release APK check
+      - name: Build release APK
         run: ./gradlew assembleRelease
+
+      - name: Run Android emulator test
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          script: |
+            adb install app/build/outputs/apk/debug/app-debug.apk
+            adb shell monkey -p com.awisogera.votingpostermaker 1
+            sleep 10
+            adb logcat -d | grep -i "FATAL EXCEPTION" && exit 1 || exit 0
