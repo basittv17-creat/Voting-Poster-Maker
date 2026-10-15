@@ -66,6 +66,13 @@ input[type=text]{background:#111;color:#fff;border:1px solid #555;border-radius:
 .savedMsg{font-size:14px;color:#9df3b2;margin:10px 0 14px}.shareRow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}.shareBtn{border:0;border-radius:10px;padding:11px 13px;color:#fff;background:#444;font-size:14px;min-width:100px}.shareBtn.wa{background:#168b4c}.shareBtn.fb{background:#1769d2}.shareBtn.closeExport{background:#666;margin-top:12px}
 
 </style>
+
+<style>
+/* Added safety padding for mobile status and navigation bars */
+body {
+    box-sizing: border-box;
+}
+</style>
 </head>
 <body>
 <div class="top"><button class="back" onclick="history.back()">‹</button><button class="export" onclick="exportPNG()">Export</button></div>
