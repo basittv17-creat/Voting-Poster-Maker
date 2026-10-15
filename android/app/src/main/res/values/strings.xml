@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Voting Poster Maker</string>
+    <string name="title_activity_main">Voting Poster Maker</string>
+    <string name="package_name">com.votingposter.maker</string>
+    <string name="custom_url_scheme">com.votingposter.maker</string>
+</resources>

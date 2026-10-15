@@ -278,13 +278,46 @@ function cycleBadgeFont(side){const styles=[{w:700,f:'Arial'},{w:400,f:'Georgia'
 function openABadge(side){activeObj={type:'photoLabel',side:side,item:S[side]};activePhoto=null;startPos=null;showABTools(side)}
 
 let lastExportDataUrl='';
-function exportPNG(){
- hideAllFloat();closePanel();draw();
- try{lastExportDataUrl=cv.toDataURL('image/png');}catch(err){alert('Poster export could not be prepared. Please try again.');return}
- const a=document.createElement('a');a.download='Voting-Maker-Poster.png';a.href=lastExportDataUrl;document.body.appendChild(a);a.click();a.remove();
- const preview=document.getElementById('exportPreview');preview.src=lastExportDataUrl;
- const msg=document.getElementById('savedMsg');msg.textContent='Your poster saved to your gallery';
- document.getElementById('exportModal').classList.add('show');
+async function exportPNG(){
+    hideAllFloat();closePanel();draw();
+    try{
+        lastExportDataUrl=cv.toDataURL('image/png');
+    }catch(err){
+        alert('Poster export could not be prepared. Please try again.');
+        return;
+    }
+
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+        try {
+            const base64Data = lastExportDataUrl.split(',')[1];
+            const fileName = 'Voting-Maker-Poster-' + Date.now() + '.png';
+            await window.Capacitor.Plugins.Filesystem.writeFile({
+                path: fileName,
+                data: base64Data,
+                directory: 'EXTERNAL_STORAGE',
+            });
+            const preview=document.getElementById('exportPreview');
+            preview.src=lastExportDataUrl;
+            const msg=document.getElementById('savedMsg');
+            msg.textContent='Your poster saved to your gallery';
+            document.getElementById('exportModal').classList.add('show');
+            return;
+        } catch (e) {
+            console.error('Error saving file via Capacitor:', e);
+        }
+    }
+
+    const a=document.createElement('a');
+    a.download='Voting-Maker-Poster.png';
+    a.href=lastExportDataUrl;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    const preview=document.getElementById('exportPreview');
+    preview.src=lastExportDataUrl;
+    const msg=document.getElementById('savedMsg');
+    msg.textContent='Your poster saved to your gallery';
+    document.getElementById('exportModal').classList.add('show');
 }
 function closeExportModal(){document.getElementById('exportModal').classList.remove('show')}
 async function sharePoster(kind){

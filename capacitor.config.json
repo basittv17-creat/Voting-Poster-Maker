@@ -1,0 +1,6 @@
+{
+  "appId": "com.votingposter.maker",
+  "appName": "Voting Poster Maker",
+  "webDir": "public",
+  "bundledWebRuntime": false
+}
