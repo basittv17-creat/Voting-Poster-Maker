@@ -3,15 +3,15 @@
 <head>
 <!-- Version 40 Photo Poster Maker: export preview/share dialog, auto-close frame picker, and hide legacy A/B adjustment controls; preserve prior features. -->
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Voting Maker App — Version 32</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:#202020;color:#fff;font-family:Arial,sans-serif;height:100%;overflow:hidden}
-body{display:flex;flex-direction:column}
+body{display:flex;flex-direction:column;height:100vh;height:100dvh;box-sizing:border-box;padding-top:30px;padding-bottom:80px}
 .top{height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;flex:0 0 62px}
 .top button{background:none;border:0;color:#fff;font-size:18px}.back{font-size:35px!important}.export{font-weight:700}
-.stageWrap{flex:1;display:flex;align-items:center;justify-content:center;padding:8px;overflow:hidden}
+.stageWrap{flex:1;min-height:0;display:flex;align-items:flex-start;justify-content:center;padding:24px 8px 8px;overflow:hidden}
 #stage{position:relative;width:min(94vw,620px);aspect-ratio:4/3;background:#ef67d2;overflow:hidden;box-shadow:0 8px 30px #0008;touch-action:none}
 canvas{width:100%;height:100%;display:block}
 .hint{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#0009;padding:5px 10px;border-radius:15px;font-size:11px;pointer-events:none;z-index:2;white-space:nowrap}
@@ -286,44 +286,54 @@ function openABadge(side){activeObj={type:'photoLabel',side:side,item:S[side]};a
 
 let lastExportDataUrl='';
 async function exportPNG(){
-    hideAllFloat();closePanel();draw();
-    try{
-        lastExportDataUrl=cv.toDataURL('image/png');
-    }catch(err){
+    hideAllFloat();
+    closePanel();
+    draw();
+
+    try {
+        lastExportDataUrl = cv.toDataURL('image/png');
+    } catch (err) {
         alert('Poster export could not be prepared. Please try again.');
         return;
     }
+
+    const preview = document.getElementById('exportPreview');
+    const msg = document.getElementById('savedMsg');
 
     if (window.Capacitor && window.Capacitor.isNativePlatform()) {
         try {
             const base64Data = lastExportDataUrl.split(',')[1];
             const fileName = 'Voting-Maker-Poster-' + Date.now() + '.png';
-            await window.Capacitor.Plugins.Filesystem.writeFile({
-                path: fileName,
+
+            const result = await window.Capacitor.Plugins.Gallery.saveImage({
                 data: base64Data,
-                directory: 'EXTERNAL_STORAGE',
+                fileName: fileName
             });
-            const preview=document.getElementById('exportPreview');
-            preview.src=lastExportDataUrl;
-            const msg=document.getElementById('savedMsg');
-            msg.textContent='Your poster saved to your gallery';
+
+            if (!result || result.saved !== true) {
+                throw new Error('Android did not confirm that the image was saved.');
+            }
+
+            preview.src = lastExportDataUrl;
+            msg.textContent = 'Poster saved to Gallery successfully!';
             document.getElementById('exportModal').classList.add('show');
             return;
         } catch (e) {
-            console.error('Error saving file via Capacitor:', e);
+            console.error('Gallery save failed:', e);
+            alert('Poster could not be saved to Gallery. Error: ' + (e.message || e));
+            return;
         }
     }
 
-    const a=document.createElement('a');
-    a.download='Voting-Maker-Poster.png';
-    a.href=lastExportDataUrl;
+    const a = document.createElement('a');
+    a.download = 'Voting-Maker-Poster.png';
+    a.href = lastExportDataUrl;
     document.body.appendChild(a);
     a.click();
     a.remove();
-    const preview=document.getElementById('exportPreview');
-    preview.src=lastExportDataUrl;
-    const msg=document.getElementById('savedMsg');
-    msg.textContent='Your poster saved to your gallery';
+
+    preview.src = lastExportDataUrl;
+    msg.textContent = 'Poster downloaded. Check your Downloads folder.';
     document.getElementById('exportModal').classList.add('show');
 }
 function closeExportModal(){document.getElementById('exportModal').classList.remove('show')}

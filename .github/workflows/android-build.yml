@@ -1,4 +1,4 @@
-name: Android AAB Build
+name: Android APK Build
 
 on:
   workflow_dispatch:
@@ -6,6 +6,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: android
 
     steps:
       - name: Checkout
@@ -15,50 +19,16 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurin'
+          distribution: temurin
 
-      - name: Setup Gradle
-        uses: gradle/gradle-build-action@v3
-
-      - name: Decode signing keystore
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      - name: Build Debug APK
         run: |
-          echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release-key.jks"
-          test -s "$RUNNER_TEMP/release-key.jks"
-
-      - name: Build signed AAB
-        env:
-          KS_PATH: ${{ runner.temp }}/release-key.jks
-          KS_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KS_ALIAS: ${{ secrets.KEY_ALIAS }}
-        run: |
-          export ORG_GRADLE_PROJECT_SIGNING_STORE_FILE="$KS_PATH"
-          export ORG_GRADLE_PROJECT_SIGNING_STORE_PASSWORD="$KS_PASSWORD"
-          export ORG_GRADLE_PROJECT_SIGNING_KEY_ALIAS="$KS_ALIAS"
-          export ORG_GRADLE_PROJECT_SIGNING_KEY_PASSWORD="$KS_PASSWORD"
-          ./gradlew bundleRelease
-
-      - name: Upload AAB
-        uses: actions/upload-artifact@v4
-        with:
-          name: signed-app-release-aab
-          path: app/build/outputs/bundle/release/*.aab
-
-      - name: Build signed APK
-        env:
-          KS_PATH: ${{ runner.temp }}/release-key.jks
-          KS_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KS_ALIAS: ${{ secrets.KEY_ALIAS }}
-        run: |
-          export ORG_GRADLE_PROJECT_SIGNING_STORE_FILE="$KS_PATH"
-          export ORG_GRADLE_PROJECT_SIGNING_STORE_PASSWORD="$KS_PASSWORD"
-          export ORG_GRADLE_PROJECT_SIGNING_KEY_ALIAS="$KS_ALIAS"
-          export ORG_GRADLE_PROJECT_SIGNING_KEY_PASSWORD="$KS_PASSWORD"
-          ./gradlew assembleRelease
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: signed-app-release-apk
-          path: app/build/outputs/apk/release/*.apk
+          name: voting-poster-maker-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
