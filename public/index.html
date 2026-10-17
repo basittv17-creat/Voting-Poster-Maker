@@ -559,11 +559,29 @@ aTools.addEventListener('pointerup',e=>e.stopPropagation());
 [aTools,abCornerTools].forEach(el=>el.addEventListener('click',e=>{e.stopPropagation()}));
 
 stage.addEventListener('pointerdown',e=>{e.preventDefault();
-const p=point(e);pointers.set(e.pointerId,p);stage.setPointerCapture(e.pointerId);if(pointers.size===1){moved=false;lastDown={x:p.x,y:p.y,time:Date.now()};const badgeSide=hitBadge(p,'A')?'A':(hitBadge(p,'B')?'B':null);const obj=hitObj(p);if(badgeSide){activeObj={type:'photoLabel',side:badgeSide,item:S[badgeSide]};activePhoto=null;startPos={x:p.x,y:p.y,ox:S[badgeSide].labelX??(badgeSide==='A'?320:880),oy:S[badgeSide].labelY??650};showABTools(badgeSide);draw()}else if(obj){activeObj=obj;activePhoto=null;hideAllFloat();showObjTools();startPos={x:p.x,y:p.y,ox:obj.item.x,oy:obj.item.y}}else{activeObj=null;hideAllFloat();activePhoto=hitPhoto(p);if(activePhoto)startPos={x:p.x,y:p.y,ox:S[activePhoto].x,oy:S[activePhoto].y};draw()}}
+const p=point(e);pointers.set(e.pointerId,p);stage.setPointerCapture(e.pointerId);if(pointers.size===1){moved=false;lastDown={x:p.x,y:p.y,time:Date.now()};const badgeSide=null;
+const photoSide=hitPhoto(p);
+const forcePhoto=photoSide && S[photoSide].img && lastTapTarget===photoSide && Date.now()-lastTap<450;
+const obj=forcePhoto?null:hitObj(p);if(badgeSide){activeObj={type:'photoLabel',side:badgeSide,item:S[badgeSide]};activePhoto=null;startPos={x:p.x,y:p.y,ox:S[badgeSide].labelX??(badgeSide==='A'?320:880),oy:S[badgeSide].labelY??650};showABTools(badgeSide);draw()}else if(obj){activeObj=obj;activePhoto=null;hideAllFloat();showObjTools();startPos={x:p.x,y:p.y,ox:obj.item.x,oy:obj.item.y}}else{activeObj=null;hideAllFloat();activePhoto=hitPhoto(p);if(activePhoto)startPos={x:p.x,y:p.y,ox:S[activePhoto].x,oy:S[activePhoto].y};draw()}}
 if(pointers.size===2){lastTap=0;lastTapTarget=null;const a=[...pointers.values()];startDist=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);if(activeObj&&activeObj.type!=='photoLabel')startScale=activeObj.item.size;else if(activeObj&&activeObj.type==='photoLabel')startScale=activeObj.item.labelSize;else if(activePhoto)startScale=S[activePhoto].s}
 });
 stage.addEventListener('pointermove',e=>{e.preventDefault();if(!pointers.has(e.pointerId))return;const p=point(e),old=pointers.get(e.pointerId);if(Math.hypot(p.x-old.x,p.y-old.y)>8)moved=true;pointers.set(e.pointerId,p);if(pointers.size===1&&startPos&&activeObj&&activeObj.type!=='photoLabel'){activeObj.item.x=startPos.ox+p.x-startPos.x;activeObj.item.y=startPos.oy+p.y-startPos.y;if(activeObj.type==='text')positionTextTools();else if(activeObj.type==='sticker'||activeObj.type==='emoji')positionStickerClose();draw()}else if(pointers.size===1&&startPos&&activeObj&&activeObj.type==='photoLabel'){const side=activeObj.side;S[side].labelX=Math.max(-10000,Math.min(11200,startPos.ox+p.x-startPos.x));S[side].labelY=Math.max(-10000,Math.min(10900,startPos.oy+p.y-startPos.y));if(aTools.classList.contains('show'))positionABTools(side);if(abCornerTools.classList.contains('show'))positionABCornerTools(side);draw()}else if(pointers.size===1&&startPos&&activePhoto&&!activeObj){S[activePhoto].x=startPos.ox+p.x-startPos.x;S[activePhoto].y=startPos.oy+p.y-startPos.y;draw()}if(pointers.size===2){const a=[...pointers.values()],d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);if(activeObj&&activeObj.type!=='photoLabel'){activeObj.item.size=Math.max(18,Math.min(420,startScale*d/startDist));if(activeObj.type==='text')positionTextTools();else if(activeObj.type==='sticker'||activeObj.type==='emoji')positionStickerClose();draw()}else if(activeObj&&activeObj.type==='photoLabel'){const side=activeObj.side;S[side].labelSize=Math.max(12,startScale*d/Math.max(1,startDist));positionABTools(side);positionABCornerTools(side);draw()}else if(activePhoto){S[activePhoto].s=Math.max(.2,Math.min(4,startScale*d/startDist));draw()}}});
-stage.addEventListener('pointerup',e=>{e.preventDefault();const p=point(e),h=hitPhoto(p),badgeSide=hitBadge(p,'A')?'A':(hitBadge(p,'B')?'B':null),tapDuration=lastDown?Date.now()-lastDown.time:999;pointerCleanup(e);if(pointers.size===0&&!moved&&tapDuration<450){const now=Date.now();if(badgeSide){openABadge(badgeSide);lastTap=0;lastTapTarget=null}else if(h&&S[h].img===null){if(now-lastTap<450&&lastTapTarget===h){pickPhoto(h);lastTap=0;lastTapTarget=null}else{lastTap=now;lastTapTarget=h}}else{lastTap=0;lastTapTarget=null}}});
+stage.addEventListener('pointerup',e=>{e.preventDefault();const p=point(e),h=hitPhoto(p),badgeSide=hitBadge(p,'A')?'A':(hitBadge(p,'B')?'B':null),tapDuration=lastDown?Date.now()-lastDown.time:999;pointerCleanup(e);if(pointers.size===0&&!moved&&tapDuration<450){
+const now=Date.now();
+const tappedObj=hitObj(p);
+if(tappedObj){
+ const target=tappedObj.type+':'+(tappedObj.item.t||tappedObj.item.x)+':'+(tappedObj.item.y);
+ if(now-lastTap<450&&lastTapTarget===target){activeObj=tappedObj;activePhoto=null;showObjTools();draw();}
+ lastTap=now;lastTapTarget=target;
+}else if(h){
+ if(S[h].img===null){
+  if(now-lastTap<450&&lastTapTarget===h){pickPhoto(h);lastTap=0;lastTapTarget=null}
+  else{lastTap=now;lastTapTarget=h}
+ }else{
+  lastTap=now;lastTapTarget=h;
+ }
+}else{lastTap=0;lastTapTarget=null}
+}});
 stage.addEventListener('pointercancel',e=>pointerCleanup(e));
 function pointerCleanup(e){pointers.delete(e.pointerId);if(pointers.size===0){activePhoto=null;startPos=null}}
 
