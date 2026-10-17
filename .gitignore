@@ -9,3 +9,5 @@ aab-extracted/
 apk-extracted/
 bundletool.jar
 build-error.txt
+
+node_modules/
