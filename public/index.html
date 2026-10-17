@@ -160,7 +160,7 @@ if(S.decorFrame && ornateFrame.complete && ornateFrame.naturalWidth){ctx.drawIma
 
 
 
-if(defaultFrameImage.complete&&defaultFrameImage.naturalWidth){const fw=1200,fh=900,ar=defaultFrameImage.naturalWidth/defaultFrameImage.naturalHeight;let dw=fw,dh=dw/ar;if(dh>fh){dh=fh;dw=dh*ar}ctx.drawImage(defaultFrameImage,(fw-dw)/2,(fh-dh)/2,dw,dh)}
+if(!S.decorFrame && S.frame==='#fff' && defaultFrameImage.complete&&defaultFrameImage.naturalWidth){const fw=1200,fh=900,ar=defaultFrameImage.naturalWidth/defaultFrameImage.naturalHeight;let dw=fw,dh=dw/ar;if(dh>fh){dh=fh;dw=dh*ar}ctx.drawImage(defaultFrameImage,(fw-dw)/2,(fh-dh)/2,dw,dh)}
 }
 function drawSelection(q,type){const w=type==='text'?Math.max(65,q.size*.55*q.t.length):q.size*1.35,h=type==='text'?q.size*1.35:q.size*1.35;ctx.save();ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.setLineDash([9,6]);ctx.strokeRect(q.x-w/2,q.y-h/2,w,h);ctx.setLineDash([]);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(q.x+w/2,q.y+h/2,7,0,Math.PI*2);ctx.fill();ctx.restore()}
 function closePanel(){panel.classList.remove('show','textOverlay')}
