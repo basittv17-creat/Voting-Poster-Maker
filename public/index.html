@@ -123,7 +123,7 @@ body {
 <script>
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d'),stage=document.getElementById('stage'),panel=document.getElementById('panel'),objTools=document.getElementById('objTools'),aTools=document.getElementById('aTools'),abCornerTools=document.getElementById('abCornerTools');
 const S={bg:'#ffffff',frame:'#008000',frameW:5,split:'#008000',splitW:10,
-decorFrame:false,A:{img:null,x:300,y:410,s:1,label:'A',labelBg:'#e53b35',labelColor:'#fff',labelSize:130,labelX:320,labelY:650,labelWeight:700,labelFont:'Arial'},
+decorFrame:false,frameStyle:'default',A:{img:null,x:300,y:410,s:1,label:'A',labelBg:'#e53b35',labelColor:'#fff',labelSize:130,labelX:320,labelY:650,labelWeight:700,labelFont:'Arial'},
 B:{img:null,x:900,y:410,s:1,label:'B',labelBg:'#65a30d',labelColor:'#fff',labelSize:130,labelX:880,labelY:650,labelWeight:700,labelFont:'Arial'},
 stickers:[],emojis:[],texts:[]};
 let pointers=new Map(),activePhoto=null,activeObj=null,startDist=0,startScale=1,startPos=null,lastTap=0,lastTapTarget=null,lastTapPoint=null,lastDown=null,moved=false;
@@ -228,9 +228,9 @@ document.body.classList.add('frameGalleryMode');
 const T=(x)=>'<div style="width:112px;height:92px;display:flex;align-items:center;justify-content:center;border:2px solid #444;border-radius:14px;overflow:hidden;background:#222">'+x+'</div>';
 t.innerHTML=
 '<button type="button" class="tool bgBack" onclick="closeFrameMode()"><span class="ico">←</span><span>Back</span></button>'+
-'<button type="button" class="tool" onclick="S.decorFrame=false;S.frame=\'#fff\';S.frameW=6;draw()">'+T('<span style="color:#fff;font-size:28px">▣</span>')+'<span>Default</span></button>'+
-'<button type="button" class="tool" onclick="S.decorFrame=true;draw()">'+T('<canvas id="greenGoldThumb" width="112" height="92" style="width:112px;height:92px"></canvas>')+'<span>Green &amp; Gold</span></button>'+
-'<button type="button" class="tool" onclick="S.decorFrame=false;S.frame=\'#000\';S.frameW=10;draw()">'+T('<span style="display:block;width:70px;height:45px;border:5px solid #000;background:#fff"></span>')+'<span>Dark Line</span></button>';
+'<button type="button" class="tool" onclick="S.frameStyle=\'default\';S.decorFrame=false;S.frame=\'#fff\';S.frameW=6;draw()">'+T('<span style="color:#fff;font-size:28px">▣</span>')+'<span>Default</span></button>'+
+'<button type="button" class="tool" onclick="S.frameStyle=\'greenGold\';S.decorFrame=true;draw()">'+T('<canvas id="greenGoldThumb" width="112" height="92" style="width:112px;height:92px"></canvas>')+'<span>Green &amp; Gold</span></button>'+
+'<button type="button" class="tool" onclick="S.frameStyle=\'darkLine\';S.decorFrame=false;S.frame=\'#000\';S.frameW=10;draw()">'+T('<span style="display:block;width:70px;height:45px;border:5px solid #000;background:#fff"></span>')+'<span>Dark Line</span></button>';
 const c=document.getElementById('greenGoldThumb');
 if(c&&ornateFrame.complete&&ornateFrame.naturalWidth)c.getContext('2d').drawImage(ornateFrame,0,0,112,92);
 }
