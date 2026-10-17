@@ -12,7 +12,7 @@ body{display:flex;flex-direction:column;height:100vh;height:100dvh;box-sizing:bo
 .top{height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;flex:0 0 62px}
 .top button{background:none;border:0;color:#fff;font-size:18px}.back{font-size:35px!important}.export{font-weight:700}
 .stageWrap{flex:1;min-height:0;display:flex;align-items:flex-start;justify-content:center;padding:24px 8px 8px;overflow:hidden}
-#stage{position:relative;width:min(94vw,620px);aspect-ratio:4/3;background:#ef67d2;overflow:hidden;box-shadow:0 8px 30px #0008;touch-action:none}
+#stage{position:relative;width:min(94vw,620px);aspect-ratio:1280/1100;background:#ffffff;overflow:hidden;box-shadow:0 8px 30px #0008;touch-action:none}
 canvas{width:100%;height:100%;display:block}
 .hint{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#0009;padding:5px 10px;border-radius:15px;font-size:11px;pointer-events:none;z-index:2;white-space:nowrap}
 .toolbar{flex:0 0 116px;background:#202020;border-top:1px solid #333;padding:8px;overflow-x:auto;white-space:nowrap;direction:ltr}
@@ -95,7 +95,7 @@ body {
 <body>
 <div class="top"><button class="back" onclick="history.back()">‹</button><button class="export" onclick="exportPNG()">Export</button></div>
 <div class="stageWrap"><div id="stage">
-<canvas id="cv" width="1200" height="900"></canvas>
+<canvas id="cv" width="1280" height="1100"></canvas>
 
 <div id="objTools" class="floatTool"></div>
 <div id="abCornerTools" class="abCornerTools"></div>
@@ -106,7 +106,7 @@ body {
  <div class="exportCard"><h2>Your poster</h2><img id="exportPreview" class="exportPreview" alt="Poster preview"><div class="savedMsg" id="savedMsg">Your poster saved to your gallery</div>
  <div class="shareRow"><button class="shareBtn wa" onclick="sharePoster('whatsapp')">🟢 WhatsApp</button><button class="shareBtn fb" onclick="sharePoster('facebook')">🔵 Facebook</button><button class="shareBtn" onclick="sharePoster('other')">📤 Share Others</button></div>
  <button class="shareBtn closeExport" onclick="closeExportModal()">Close</button></div></div>
-<div class="toolbar"><div class="tools">
+<div class="toolbar"><div class="tools"><button class="tool" onclick="openCanvaSizes()"><span class="ico">▣</span><span>Canva</span></button>
 <button class="tool" onclick="pickPhoto('A')"><span class="ico">A</span><span>Add A Photo</span></button>
 <button class="tool" onclick="pickPhoto('B')"><span class="ico">B</span><span>Add B Photo</span></button>
 <button class="tool" onclick="openBackground()"><span class="ico">▨</span><span>Background</span></button>
@@ -118,7 +118,7 @@ body {
 <input id="fileA" type="file" accept="image/*" hidden><input id="fileB" type="file" accept="image/*" hidden>
 <script>
 const cv=document.getElementById('cv'),ctx=cv.getContext('2d'),stage=document.getElementById('stage'),panel=document.getElementById('panel'),objTools=document.getElementById('objTools'),aTools=document.getElementById('aTools'),abCornerTools=document.getElementById('abCornerTools');
-const S={bg:'#ef67d2',frame:'#fff',frameW:6,split:'#fff',splitW:7,
+const S={bg:'#ffffff',frame:'#008000',frameW:5,split:'#008000',splitW:10,
 decorFrame:false,A:{img:null,x:300,y:410,s:1,label:'A',labelBg:'#e53b35',labelColor:'#fff',labelSize:130,labelX:320,labelY:650,labelWeight:700,labelFont:'Arial'},
 B:{img:null,x:900,y:410,s:1,label:'B',labelBg:'#65a30d',labelColor:'#fff',labelSize:130,labelX:880,labelY:650,labelWeight:700,labelFont:'Arial'},
 stickers:[],emojis:[],texts:[]};
@@ -132,13 +132,24 @@ function drawCover(img,cx,cy,scale,w,h){const ar=img.width/img.height,br=w/h;let
 function centerText(t,x,y,s){ctx.fillStyle='#fff';ctx.font=s+'px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,x,y)}
 function badge(o,x,y,side){ctx.save();const bx=o.labelX??x,by=o.labelY??y,scale=(o.labelSize||54)/54,bw=110*scale,bh=76*scale;ctx.shadowColor='#0008';ctx.shadowBlur=12;ctx.fillStyle=o.labelBg;ctx.beginPath();ctx.roundRect(bx-bw/2,by-bh/2,bw,bh,Math.min(16*scale,bh/2));ctx.fill();ctx.shadowBlur=0;ctx.fillStyle=o.labelColor;ctx.font=(o.labelWeight||700)+' '+o.labelSize+'px '+(o.labelFont||'Arial');ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(o.label,bx,by);if(activeObj&&activeObj.type==='photoLabel'&&activeObj.side===side){ctx.strokeStyle='#fff';ctx.lineWidth=Math.max(2,5*scale);ctx.setLineDash([9*scale,6*scale]);ctx.strokeRect(bx-bw/2-8*scale,by-bh/2-8*scale,bw+16*scale,bh+16*scale);ctx.setLineDash([])}ctx.restore()}
 function draw(){
+ctx.setTransform(1,0,0,1,0,0);
+ctx.clearRect(0,0,cv.width,cv.height);
+ctx.fillStyle=S.bg;ctx.fillRect(0,0,cv.width,cv.height);
+const canvasScale=Math.min(cv.width/1200,cv.height/900);
+const canvasOffsetX=(cv.width-1200*canvasScale)/2;
+const canvasOffsetY=(cv.height-900*canvasScale)/2;
+ctx.setTransform(canvasScale,0,0,canvasScale,canvasOffsetX,canvasOffsetY);
 ctx.clearRect(0,0,1200,900);ctx.fillStyle=S.bg;ctx.fillRect(0,0,1200,900);
 for(const [side,o] of [['A',S.A],['B',S.B]]){const x=side==='A'?70:630;if(o.img){ctx.save();ctx.beginPath();ctx.rect(x,70,500,680);ctx.clip();drawCover(o.img,o.x,o.y,o.s,500,680);ctx.restore()}else{ctx.fillStyle='#ffffff30';ctx.fillRect(x,70,500,680);centerText(side==='A'?'دبائیں اور A کی تصویر اپلوڈ کریں':'دبائیں اور B کی تصویر اپلوڈ کریں',x+250,410,23)}}
-ctx.fillStyle=S.split;ctx.fillRect(590-S.splitW/2,70,S.splitW,680);badge(S.A,500,700,'A');badge(S.B,1060,700,'B');
+ctx.fillStyle=S.split;ctx.fillRect(590-S.splitW/2,7,S.splitW,843);badge(S.A,500,700,'A');badge(S.B,1060,700,'B');
 for(const q of S.stickers){ctx.font=q.size+'px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(q.t,q.x,q.y);if(activeObj&&activeObj.type==='sticker'&&activeObj.item===q)drawSelection(q,'sticker')}
 for(const q of S.emojis){ctx.font=q.size+'px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(q.t,q.x,q.y);if(activeObj&&activeObj.type==='emoji'&&activeObj.item===q)drawSelection(q,'emoji')}
 for(const q of S.texts){ctx.save();ctx.font=(q.weight||700)+' '+q.size+'px '+(q.font||'Arial');ctx.textAlign='center';ctx.textBaseline='middle';if(q.bg){const tw=ctx.measureText(q.t).width,padX=Math.max(14,q.size*.22),padY=Math.max(7,q.size*.12),bh=q.size+padY*2;let grad;if(q.bg.startsWith('linear-gradient')){const m=q.bg.match(/linear-gradient\(135deg,([^,]+),([^\)]+)\)/);grad=ctx.createLinearGradient(q.x-tw/2,q.y-bh/2,q.x+tw/2,q.y+bh/2);if(m){grad.addColorStop(0,m[1].trim());grad.addColorStop(1,m[2].trim())}else grad='#222'}else grad=q.bg;ctx.fillStyle=grad;const bx=q.x-tw/2-padX,by=q.y-bh/2,bw=tw+padX*2;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,Math.min(18,bh/2));ctx.fill()}if(q.strokeWidth>0){ctx.lineJoin='round';ctx.lineWidth=q.strokeWidth;ctx.strokeStyle=q.strokeColor||'#000';ctx.strokeText(q.t,q.x,q.y)}ctx.fillStyle=q.color;ctx.fillText(q.t,q.x,q.y);ctx.restore();if(activeObj&&activeObj.type==='text'&&activeObj.item===q)drawSelection(q,'text')}
-ctx.strokeStyle=S.frame;ctx.lineWidth=S.frameW;ctx.strokeRect(10,10,1180,880);
+ctx.fillStyle=S.frame;
+ctx.fillRect(0,0,5,900);
+ctx.fillRect(1195,0,5,900);
+ctx.fillRect(0,0,1200,7);
+ctx.fillRect(0,850,1200,50);
 if(S.decorFrame && ornateFrame.complete && ornateFrame.naturalWidth){ctx.drawImage(ornateFrame,0,0,1200,900)}
 
 
@@ -176,6 +187,31 @@ const t=document.querySelector('.tools');
 if(t&&window.normalToolbarHTML!==undefined)t.innerHTML=window.normalToolbarHTML;
 document.body.classList.remove('frameGalleryMode');
 }
+
+let canvaToolbarHTML;
+function openCanvaSizes(){
+ const t=document.querySelector('.tools');
+ if(!t)return;
+ canvaToolbarHTML=t.innerHTML;
+ t.innerHTML=
+ '<button class="tool" onclick="closeCanvaSizes()">← Back</button>'+
+ '<button class="tool" onclick="setCanvaSize(1280,1100)">1280 × 1100<br>Default</button>'+
+ '<button class="tool" onclick="setCanvaSize(1920,1080)">16:9</button>'+
+ '<button class="tool" onclick="setCanvaSize(1200,1200)">1:1</button>'+
+ '<button class="tool" onclick="setCanvaSize(1200,900)">4:3</button>';
+}
+function closeCanvaSizes(){
+ const t=document.querySelector('.tools');
+ if(t&&canvaToolbarHTML!==undefined)t.innerHTML=canvaToolbarHTML;
+ canvaToolbarHTML=undefined;
+}
+function setCanvaSize(w,h){
+ cv.width=w;cv.height=h;
+ stage.style.aspectRatio=w+'/'+h;
+ closeCanvaSizes();
+ draw();
+}
+
 function openFrame(){
 hideAllFloat();
 closePanel();
@@ -324,8 +360,8 @@ function objectBounds(){
 }
 function positionTextTools(){
  const b=objectBounds();if(!b)return;
- const r=cv.getBoundingClientRect(),sx=r.width/1200,sy=r.height/900;
- let left=b.x*sx,top=b.y*sy;
+ const r=cv.getBoundingClientRect(),scale=Math.min(cv.width/1200,cv.height/900),sx=scale*r.width/cv.width,sy=scale*r.height/cv.height,ox=(cv.width-1200*scale)/2*r.width/cv.width,oy=(cv.height-900*scale)/2*r.height/cv.height;
+ let left=ox+b.x*sx,top=oy+b.y*sy;
  left=Math.max(14,Math.min(r.width-14-(b.w*sx),left));
  top=Math.max(14,Math.min(r.height-14-(b.h*sy),top));
  objTools.style.left=left+'px';objTools.style.top=top+'px';
@@ -336,8 +372,8 @@ function positionTextTools(){
 function positionStickerClose(){
  const b=objectBounds();if(!b)return;
  objTools.style.width='';objTools.style.height='';objTools.style.maxWidth='190px';objTools.style.padding='6px';objTools.style.background='#202020ee';objTools.style.border='1px solid #666';objTools.style.boxShadow='0 8px 25px #0009';objTools.style.pointerEvents='auto';
- const r=cv.getBoundingClientRect(),sx=r.width/1200,sy=r.height/900;
- let left=(b.x+b.w-12)*sx,top=(b.y-12)*sy;
+ const r=cv.getBoundingClientRect(),scale=Math.min(cv.width/1200,cv.height/900),sx=scale*r.width/cv.width,sy=scale*r.height/cv.height,ox=(cv.width-1200*scale)/2*r.width/cv.width,oy=(cv.height-900*scale)/2*r.height/cv.height;
+ let left=ox+(b.x+b.w-12)*sx,top=oy+(b.y-12)*sy;
  left=Math.max(2,Math.min(r.width-38,left));top=Math.max(2,Math.min(r.height-38,top));
  objTools.style.left=left+'px';objTools.style.top=top+'px';
 }
@@ -379,9 +415,9 @@ function badgeColors(){return ['#e53b35','#111827','#2563eb','#16a34a','#f59e0b'
 function badgeTextColors(){return ['#fff','#000','#ffd700','#00ffcc','#ff69b4','#7dd3fc','#ff7f50','#c4b5fd'];}
 function showABTools(side){hideAllFloat();return;}
 function positionABCornerTools(side){
- const r=cv.getBoundingClientRect(),sx=r.width/1200,sy=r.height/900;
+ const r=cv.getBoundingClientRect(),scale=Math.min(cv.width/1200,cv.height/900),sx=scale*r.width/cv.width,sy=scale*r.height/cv.height,ox=(cv.width-1200*scale)/2*r.width/cv.width,oy=(cv.height-900*scale)/2*r.height/cv.height;
  const o=S[side],x=o.labelX??(side==='A'?320:880),y=o.labelY??650;
- const bx=x*sx,by=y*sy;
+ const bx=ox+x*sx,by=oy+y*sy;
  const w=126*sx,h=92*sy;
  let left=bx-w/2,top=by-h/2;
  left=Math.max(4,Math.min(r.width-w-4,left));
@@ -412,11 +448,11 @@ function showABFontPalette(side){
 function setBadgeFont(side,font,weight){S[side].labelFont=font;S[side].labelWeight=weight;draw();closeABPalette(side);positionABCornerTools(side)}
 function closeABPalette(side){aTools.classList.remove('show');aTools.innerHTML='';if(activeObj&&activeObj.type==='photoLabel'&&activeObj.side===side){abCornerTools.classList.add('show');positionABCornerTools(side)}}
 function positionABTools(side){
- const r=cv.getBoundingClientRect(),sx=r.width/1200,sy=r.height/900;
+ const r=cv.getBoundingClientRect(),scale=Math.min(cv.width/1200,cv.height/900),sx=scale*r.width/cv.width,sy=scale*r.height/cv.height,ox=(cv.width-1200*scale)/2*r.width/cv.width,oy=(cv.height-900*scale)/2*r.height/cv.height;
  const o=S[side],x=o.labelX??(side==='A'?320:880),y=o.labelY??650;
  const toolW=Math.min(250,r.width-8);
  const toolH=Math.min(aTools.querySelector('.abFontGrid')?140:72,r.height-8);
- const badgeScreenX=x*sx, badgeScreenY=y*sy;
+ const badgeScreenX=ox+x*sx, badgeScreenY=oy+y*sy;
  let left=badgeScreenX-toolW/2;
  let top=badgeScreenY+46*sy+2;
  left=Math.max(4,Math.min(r.width-toolW-4,left));
@@ -498,7 +534,7 @@ async function sharePoster(kind){
   else {const a=document.createElement('a');a.href=lastExportDataUrl;a.download='Voting-Maker-Poster.png';a.click();alert('Poster downloaded. Attach it in the app you want to share with.');}
  }catch(err){if(err&&err.name!=='AbortError'){alert('Sharing is not available in this browser. The poster has been downloaded; please attach it manually.')}}
 }
-function point(e){const r=cv.getBoundingClientRect();return{x:(e.clientX-r.left)*1200/r.width,y:(e.clientY-r.top)*900/r.height}}
+function point(e){const r=cv.getBoundingClientRect();const scale=Math.min(cv.width/1200,cv.height/900);const ox=(cv.width-1200*scale)/2;const oy=(cv.height-900*scale)/2;return{x:((e.clientX-r.left)*cv.width/r.width-ox)/scale,y:((e.clientY-r.top)*cv.height/r.height-oy)/scale}}
 function hitPhoto(p){if(p.x>=70&&p.x<=570&&p.y>=70&&p.y<=750)return'A';if(p.x>=630&&p.x<=1130&&p.y>=70&&p.y<=750)return'B';return null}
 function hitObj(p){
  // Selected objects get priority so they remain easy to grab, move and pinch-zoom.
