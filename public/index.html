@@ -155,12 +155,12 @@ ctx.fillRect(0,0,5,900);
 ctx.fillRect(1195,0,5,900);
 ctx.fillRect(0,0,1200,7);
 ctx.fillRect(0,850,1200,50);
-if(S.decorFrame && ornateFrame.complete && ornateFrame.naturalWidth){ctx.drawImage(ornateFrame,0,0,1200,900)}
+if(S.frameStyle==='greenGold' && ornateFrame.complete && ornateFrame.naturalWidth){const ar=ornateFrame.naturalWidth/ornateFrame.naturalHeight;let dw=1200,dh=dw/ar;if(dh>900){dh=900;dw=dh*ar}ctx.drawImage(ornateFrame,(1200-dw)/2,(900-dh)/2,dw,dh)}
 
 
 
 
-if(!S.decorFrame && S.frame==='#fff' && defaultFrameImage.complete&&defaultFrameImage.naturalWidth){const fw=1200,fh=900,ar=defaultFrameImage.naturalWidth/defaultFrameImage.naturalHeight;let dw=fw,dh=dw/ar;if(dh>fh){dh=fh;dw=dh*ar}ctx.drawImage(defaultFrameImage,(fw-dw)/2,(fh-dh)/2,dw,dh)}
+if(S.frameStyle==='default' && defaultFrameImage.complete&&defaultFrameImage.naturalWidth){const ar=defaultFrameImage.naturalWidth/defaultFrameImage.naturalHeight;let dw=1200,dh=dw/ar;if(dh>900){dh=900;dw=dh*ar}ctx.drawImage(defaultFrameImage,(1200-dw)/2,(900-dh)/2,dw,dh)}
 }
 function drawSelection(q,type){const w=type==='text'?Math.max(65,q.size*.55*q.t.length):q.size*1.35,h=type==='text'?q.size*1.35:q.size*1.35;ctx.save();ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.setLineDash([9,6]);ctx.strokeRect(q.x-w/2,q.y-h/2,w,h);ctx.setLineDash([]);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(q.x+w/2,q.y+h/2,7,0,Math.PI*2);ctx.fill();ctx.restore()}
 function closePanel(){panel.classList.remove('show','textOverlay')}
