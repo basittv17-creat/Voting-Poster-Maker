@@ -128,9 +128,8 @@ const ornateFrame=new Image(); ornateFrame.src='data:image/png;base64,iVBORw0KGg
 
 function fitImage(o,img,side){o.img=img;o.s=1;o.x=side==='A'?300:900;o.y=410;activeObj=null;activePhoto=null;hideAllFloat();draw()}
 function pickPhoto(side){const input=document.getElementById(side==='A'?'fileA':'fileB');input.value='';input.onchange=()=>{const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{const im=new Image();im.onload=()=>fitImage(S[side],im,side);im.src=e.target.result};r.readAsDataURL(f)};input.click()}
-function drawCover(img,cx,cy,scale,w,h){const ar=img.width/img.height,br=w/h;let dw,dh;if(ar>br){dh=h;dw=dh*ar}else{dw=w;dh=dw/ar}dw*=scale;dh*=scale;ctx.drawImage(img,cx-dw/2,cy-dh/2,dw,dh)}
+function drawCover(img,cx,cy,scale,w,h){const ar=img.width/img.height,br=w/h;let dw,dh;if(ar>br){dw=w;dh=dw/ar}else{dh=h;dw=dh*ar}dw*=scale;dh*=scale;ctx.drawImage(img,cx-dw/2,cy-dh/2,dw,dh)}
 function centerText(t,x,y,s){ctx.fillStyle='#fff';ctx.font=s+'px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t,x,y)}
-function badge(o,x,y,side){ctx.save();const bx=o.labelX??x,by=o.labelY??y,scale=(o.labelSize||54)/54,bw=110*scale,bh=76*scale;ctx.shadowColor='#0008';ctx.shadowBlur=12;ctx.fillStyle=o.labelBg;ctx.beginPath();ctx.roundRect(bx-bw/2,by-bh/2,bw,bh,Math.min(16*scale,bh/2));ctx.fill();ctx.shadowBlur=0;ctx.fillStyle=o.labelColor;ctx.font=(o.labelWeight||700)+' '+o.labelSize+'px '+(o.labelFont||'Arial');ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(o.label,bx,by);if(activeObj&&activeObj.type==='photoLabel'&&activeObj.side===side){ctx.strokeStyle='#fff';ctx.lineWidth=Math.max(2,5*scale);ctx.setLineDash([9*scale,6*scale]);ctx.strokeRect(bx-bw/2-8*scale,by-bh/2-8*scale,bw+16*scale,bh+16*scale);ctx.setLineDash([])}ctx.restore()}
 function draw(){
 ctx.setTransform(1,0,0,1,0,0);
 ctx.clearRect(0,0,cv.width,cv.height);
@@ -141,7 +140,7 @@ const canvasOffsetY=(cv.height-900*canvasScale)/2;
 ctx.setTransform(canvasScale,0,0,canvasScale,canvasOffsetX,canvasOffsetY);
 ctx.clearRect(0,0,1200,900);ctx.fillStyle=S.bg;ctx.fillRect(0,0,1200,900);
 for(const [side,o] of [['A',S.A],['B',S.B]]){const x=side==='A'?70:630;if(o.img){ctx.save();ctx.beginPath();ctx.rect(x,70,500,680);ctx.clip();drawCover(o.img,o.x,o.y,o.s,500,680);ctx.restore()}else{ctx.fillStyle='#ffffff30';ctx.fillRect(x,70,500,680);centerText(side==='A'?'دبائیں اور A کی تصویر اپلوڈ کریں':'دبائیں اور B کی تصویر اپلوڈ کریں',x+250,410,23)}}
-ctx.fillStyle=S.split;ctx.fillRect(590-S.splitW/2,7,S.splitW,843);badge(S.A,500,700,'A');badge(S.B,1060,700,'B');
+ctx.fillStyle=S.split;ctx.fillRect(590-S.splitW/2,7,S.splitW,843);
 for(const q of S.stickers){ctx.font=q.size+'px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(q.t,q.x,q.y);if(activeObj&&activeObj.type==='sticker'&&activeObj.item===q)drawSelection(q,'sticker')}
 for(const q of S.emojis){ctx.font=q.size+'px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(q.t,q.x,q.y);if(activeObj&&activeObj.type==='emoji'&&activeObj.item===q)drawSelection(q,'emoji')}
 for(const q of S.texts){ctx.save();ctx.font=(q.weight||700)+' '+q.size+'px '+(q.font||'Arial');ctx.textAlign='center';ctx.textBaseline='middle';if(q.bg){const tw=ctx.measureText(q.t).width,padX=Math.max(14,q.size*.22),padY=Math.max(7,q.size*.12),bh=q.size+padY*2;let grad;if(q.bg.startsWith('linear-gradient')){const m=q.bg.match(/linear-gradient\(135deg,([^,]+),([^\)]+)\)/);grad=ctx.createLinearGradient(q.x-tw/2,q.y-bh/2,q.x+tw/2,q.y+bh/2);if(m){grad.addColorStop(0,m[1].trim());grad.addColorStop(1,m[2].trim())}else grad='#222'}else grad=q.bg;ctx.fillStyle=grad;const bx=q.x-tw/2-padX,by=q.y-bh/2,bw=tw+padX*2;ctx.beginPath();ctx.roundRect(bx,by,bw,bh,Math.min(18,bh/2));ctx.fill()}if(q.strokeWidth>0){ctx.lineJoin='round';ctx.lineWidth=q.strokeWidth;ctx.strokeStyle=q.strokeColor||'#000';ctx.strokeText(q.t,q.x,q.y)}ctx.fillStyle=q.color;ctx.fillText(q.t,q.x,q.y);ctx.restore();if(activeObj&&activeObj.type==='text'&&activeObj.item===q)drawSelection(q,'text')}
@@ -410,7 +409,7 @@ objTools.addEventListener('click',function(e){
 function editSelectedText(){if(!activeObj||activeObj.type!=='text')return;const q=activeObj.item;hideAllFloat();panelHTML('Edit Text','<input id=editIn type=text value="'+escapeHtml(q.t)+'"><div class=row style="margin-top:8px"><button class=opt onclick="saveEditedText()">Save</button><button class=opt onclick="closePanel();showObjTools()">Cancel</button></div>',true);setTimeout(()=>{const e=document.getElementById('editIn');if(e){e.focus();e.select()}},50)}
 function saveEditedText(){const e=document.getElementById('editIn');if(e&&activeObj&&activeObj.type==='text'){activeObj.item.t=e.value.trim()||activeObj.item.t}closePanel();showObjTools();draw()}
 function escapeHtml(s){return String(s).replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\\':'\\\\','"':'&quot;'}[m]))}
-function hitBadge(p,side){const o=S[side],x=o.labelX??(side==='A'?320:880),y=o.labelY??650,scale=(o.labelSize||54)/54,hw=Math.max(36,63*scale),hh=Math.max(24,46*scale);return Math.abs(p.x-x)<=hw&&Math.abs(p.y-y)<=hh}
+function hitBadge(p,side){return false}
 function badgeColors(){return ['#e53b35','#111827','#2563eb','#16a34a','#f59e0b','#db2777','#7c3aed','#0891b2','#000','#f43f5e','#65a30d','#9333ea','#0f766e','#fff','#fb7185','#22c55e','#06b6d4','#f97316','#a855f7','#84cc16','#14b8a6','#ec4899','#64748b','#fde047'];}
 function badgeTextColors(){return ['#fff','#000','#ffd700','#00ffcc','#ff69b4','#7dd3fc','#ff7f50','#c4b5fd'];}
 function showABTools(side){hideAllFloat();return;}
