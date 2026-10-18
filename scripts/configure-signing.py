@@ -56,9 +56,9 @@ if start >= 0:
 block = """    signingConfigs {
         release {
             storeFile file('upload-keystore.jks')
-            storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
-            keyAlias System.getenv('ANDROID_KEY_ALIAS')
-            keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD') ?: ''
+            keyAlias System.getenv('ANDROID_KEY_ALIAS') ?: ''
+            keyPassword System.getenv('ANDROID_KEY_PASSWORD') ?: ''
         }
     }
 
