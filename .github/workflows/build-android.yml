@@ -41,7 +41,22 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-        run: python3 scripts/configure-signing.py
+        run: |
+          python3 - <<'CHECK'
+          import os, sys
+          names = [
+              "ANDROID_KEYSTORE_BASE64",
+              "ANDROID_KEYSTORE_PASSWORD",
+              "ANDROID_KEY_ALIAS",
+              "ANDROID_KEY_PASSWORD",
+          ]
+          missing = [name for name in names if not os.getenv(name)]
+          if missing:
+              print("Missing or empty signing secrets:", ", ".join(missing))
+              sys.exit(1)
+          print("All signing secrets are present.")
+          CHECK
+          python3 scripts/configure-signing.py
 
       - name: Build APK and AAB
         working-directory: android
