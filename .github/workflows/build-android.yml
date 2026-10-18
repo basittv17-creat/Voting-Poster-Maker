@@ -3,7 +3,7 @@ name: Build Voting Poster Maker APK and AAB
 on:
   workflow_dispatch:
   push:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
 
 permissions:
   contents: read
@@ -24,18 +24,18 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
 
-      - name: Install JavaScript dependencies
+      - name: Install dependencies
         run: npm install
 
       - name: Generate Android project
         run: npx cap add android
 
-      - name: Sync web app into Android
+      - name: Sync web app
         run: npx cap sync android
 
-      - name: Configure release signing when GitHub secrets are present
+      - name: Configure release signing
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -49,17 +49,18 @@ jobs:
           chmod +x gradlew
           ./gradlew --no-daemon assembleRelease bundleRelease
 
-      - name: Collect APK and AAB
-        run: |
-          mkdir -p release-files
-          find android/app/build/outputs/apk -type f -name '*.apk' -exec cp {} release-files/ \;
-          find android/app/build/outputs/bundle -type f -name '*.aab' -exec cp {} release-files/ \;
-          ls -lh release-files
-
-      - name: Upload APK and AAB artifacts
+      - name: Upload APK separately
         uses: actions/upload-artifact@v4
         with:
-          name: voting-poster-maker-android-builds
-          path: release-files/*
+          name: voting-poster-maker-APK
+          path: android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload AAB separately
+        uses: actions/upload-artifact@v4
+        with:
+          name: voting-poster-maker-AAB
+          path: android/app/build/outputs/bundle/release/*.aab
           if-no-files-found: error
           retention-days: 30
