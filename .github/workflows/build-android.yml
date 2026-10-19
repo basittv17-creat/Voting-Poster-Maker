@@ -43,30 +43,31 @@ jobs:
       - name: Configure Release Signing
         env:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
           set -e
           test -n "$KEY_ALIAS" || { echo "KEY_ALIAS is empty"; exit 1; }
-          PASS="${STORE_PASSWORD:-$KEYSTORE_PASSWORD}"
-          test -n "$PASS" || { echo "Keystore password secret is empty"; exit 1; }
+          test -n "$STORE_PASSWORD" || { echo "STORE_PASSWORD is empty"; exit 1; }
+          test -n "$KEY_PASSWORD" || { echo "KEY_PASSWORD is empty"; exit 1; }
           {
             echo "storeFile=app/upload-keystore.jks"
-            echo "storePassword=$PASS"
+            echo "storePassword=$STORE_PASSWORD"
             echo "keyAlias=$KEY_ALIAS"
-            echo "keyPassword=$PASS"
+            echo "keyPassword=$KEY_PASSWORD"
           } > android/keystore.properties
           chmod 600 android/keystore.properties
 
       - name: Verify Keystore Credentials
         env:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
           set -e
-          PASS="${STORE_PASSWORD:-$KEYSTORE_PASSWORD}"
-          keytool -list -keystore android/app/upload-keystore.jks -storepass "$PASS" -alias "$KEY_ALIAS" >/dev/null
+          test -n "$STORE_PASSWORD" || { echo "STORE_PASSWORD is empty"; exit 1; }
+          test -n "$KEY_PASSWORD" || { echo "KEY_PASSWORD is empty"; exit 1; }
+          keytool -list -keystore android/app/upload-keystore.jks -storepass "$STORE_PASSWORD" -alias "$KEY_ALIAS" >/dev/null
           echo "Keystore and alias verified."
 
       - name: Build Debug APK and Release AAB
