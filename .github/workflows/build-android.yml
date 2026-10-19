@@ -29,10 +29,11 @@ jobs:
           distribution: "temurin"
           java-version: "17"
 
-      - name: Decode Keystore
+      - name: Decode Keystore into android/app/
         run: |
           cd android/app
           echo "${{ secrets.STORE_FILE_BASE64 }}" | base64 --decode > upload-keystore.jks
+          ls -la upload-keystore.jks
 
       - name: Create gradle.properties
         run: |
@@ -41,7 +42,7 @@ jobs:
           echo "MYAPP_UPLOAD_KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> android/gradle.properties
           echo "MYAPP_UPLOAD_KEY_PASSWORD=${{ secrets.STORE_PASSWORD }}" >> android/gradle.properties
 
-      - name: Build APK and Signed AAB
+      - name: Build Signed Release AAB and Debug APK
         run: |
           cd android
           chmod +x gradlew
