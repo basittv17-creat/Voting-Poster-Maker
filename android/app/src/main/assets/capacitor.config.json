@@ -1,0 +1,9 @@
+{
+	"appId": "com.awasigogera.votingpostermaker",
+	"appName": "Voting Poster Maker",
+	"webDir": "www",
+	"bundledWebRuntime": false,
+	"server": {
+		"androidScheme": "https"
+	}
+}
