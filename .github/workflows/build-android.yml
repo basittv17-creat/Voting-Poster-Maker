@@ -45,7 +45,8 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug bundleRelease -Pandroid.injected.signing.store.file=upload-keystore.jks -Pandroid.injected.signing.store.password="${{ secrets.STORE_PASSWORD }}" -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" -Pandroid.injected.signing.key.password="${{ secrets.STORE_PASSWORD }}"
+          ./gradlew assembleDebug
+          ./gradlew bundleRelease -Pandroid.injected.signing.store.file=app/upload-keystore.jks -Pandroid.injected.signing.store.password="${{ secrets.STORE_PASSWORD }}" -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" -Pandroid.injected.signing.key.password="${{ secrets.STORE_PASSWORD }}"
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
