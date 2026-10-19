@@ -51,7 +51,7 @@ jobs:
           test -n "$STORE_PASSWORD" || { echo "STORE_PASSWORD is empty"; exit 1; }
           test -n "$KEY_PASSWORD" || { echo "KEY_PASSWORD is empty"; exit 1; }
           {
-            echo "storeFile=app/upload-keystore.jks"
+            echo "storeFile=upload-keystore.jks"
             echo "storePassword=$STORE_PASSWORD"
             echo "keyAlias=$KEY_ALIAS"
             echo "keyPassword=$KEY_PASSWORD"
