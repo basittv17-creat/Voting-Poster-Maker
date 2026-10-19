@@ -41,11 +41,11 @@ jobs:
           echo "MYAPP_UPLOAD_KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> android/gradle.properties
           echo "MYAPP_UPLOAD_KEY_PASSWORD=${{ secrets.STORE_PASSWORD }}" >> android/gradle.properties
 
-      - name: Build APK and AAB
+      - name: Build APK and Signed AAB
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug bundleRelease
+          ./gradlew assembleDebug bundleRelease -Pandroid.injected.signing.store.file=app/upload-keystore.jks -Pandroid.injected.signing.store.password="${{ secrets.STORE_PASSWORD }}" -Pandroid.injected.signing.key.alias="${{ secrets.KEY_ALIAS }}" -Pandroid.injected.signing.key.password="${{ secrets.STORE_PASSWORD }}"
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
