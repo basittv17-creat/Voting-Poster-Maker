@@ -34,7 +34,24 @@ public class GalleryPlugin extends Plugin {
         Uri imageUri = null;
 
         try {
-            byte[] imageBytes = Base64.decode(data, Base64.DEFAULT);
+            byte[] imageBytes;
+            try {
+                imageBytes = Base64.decode(data, Base64.DEFAULT);
+            } catch (IllegalArgumentException ex) {
+                call.reject("Invalid image data. Please export the poster again.");
+                return;
+            }
+
+            if (imageBytes.length == 0 ||
+                imageBytes.length < 8 ||
+                imageBytes[0] != (byte) 0x89 ||
+                imageBytes[1] != 0x50 ||
+                imageBytes[2] != 0x4E ||
+                imageBytes[3] != 0x47) {
+                call.reject("The poster data is not a valid PNG image.");
+                return;
+            }
+
             ContentResolver resolver = getContext().getContentResolver();
 
             ContentValues values = new ContentValues();
