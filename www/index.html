@@ -550,7 +550,7 @@ async function exportPNG(){
             const base64Data = lastExportDataUrl.split(',')[1];
             const fileName = 'Voting-Poster-Maker-' + Date.now() + '.png';
 
-            const Gallery = window.Capacitor.registerPlugin('Gallery');
+            const Gallery = window.Capacitor.Plugins.Gallery;
             const result = await Gallery.saveImage({
                 data: base64Data,
                 fileName: fileName
