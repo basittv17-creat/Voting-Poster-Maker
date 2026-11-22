@@ -80,8 +80,8 @@ private fun PosterApp(vm: EditorViewModel) {
     }
     LaunchedEffect(notice) {
         notice?.let {
-            vm.notice.value = null
             messages.showSnackbar(it)
+            if (vm.notice.value == it) vm.notice.value = null
         }
     }
     // A process restart leaves drafts in My Designs.

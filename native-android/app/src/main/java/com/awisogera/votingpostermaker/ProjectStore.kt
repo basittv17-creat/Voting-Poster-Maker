@@ -25,6 +25,8 @@ interface PosterDao {
     @Query("SELECT * FROM SavedPoster ORDER BY updated DESC")
     fun watch(): Flow<List<SavedPoster>>
     @Upsert suspend fun save(poster: SavedPoster)
+    @Query("DELETE FROM SavedPoster WHERE id = :id")
+    suspend fun delete(id: String)
 }
 
 @Database(entities = [SavedPoster::class], version = 1, exportSchema = false)

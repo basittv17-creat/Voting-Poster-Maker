@@ -56,13 +56,16 @@ fun PosterCanvas(
             val top = (size.height - scaledHeight) / 2 + livePan.y
             val point = Offset((down.position.x - left) * 1200 / scaledWidth,
                 (down.position.y - top) * 900 / scaledHeight)
-            val layer = if (moveCanvas) null else liveDocument.hit(point.x, point.y)
+            val onPoster = point.x in 0f..1200f && point.y in 0f..900f
+            val layer = if (!moveCanvas && onPoster) liveDocument.hit(point.x, point.y) else null
             if (!moveCanvas) {
                 vm.select(layer?.id)
                 notify(layer, false)
             }
             var moved = false
             var travel = Offset.Zero
+            var gestureZoom = liveZoom
+            var gesturePan = livePan
             vm.startGesture()
             try {
                 do {
@@ -74,12 +77,13 @@ fun PosterCanvas(
                     if (!moved && (travel.getDistance() > viewConfiguration.touchSlop ||
                                 kotlin.math.abs(1f - zoom) > .025f || kotlin.math.abs(rotation) > 3f)) moved = true
                     if (moved && moveCanvas) {
-                        val nextZoom = (liveZoom * zoom).coerceIn(1f, 4f)
-                        val nextPan = livePan + pan
-                        updateViewport(nextZoom, Offset(
-                            nextPan.x.coerceIn(-width * nextZoom / 2, width * nextZoom / 2),
-                            nextPan.y.coerceIn(-height * nextZoom / 2, height * nextZoom / 2),
-                        ))
+                        gestureZoom = (gestureZoom * zoom).coerceIn(1f, 4f)
+                        val nextPan = gesturePan + pan
+                        gesturePan = Offset(
+                            nextPan.x.coerceIn(-width * gestureZoom / 2, width * gestureZoom / 2),
+                            nextPan.y.coerceIn(-height * gestureZoom / 2, height * gestureZoom / 2),
+                        )
+                        updateViewport(gestureZoom, gesturePan)
                     } else if (moved && layer != null) {
                         vm.transform(layer.id, pan.x * 1200 / scaledWidth, pan.y * 900 / scaledHeight, zoom, rotation)
                     }

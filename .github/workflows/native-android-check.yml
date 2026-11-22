@@ -32,3 +32,53 @@ jobs:
         with:
           name: voting-poster-maker-native-debug
           path: native-android/app/build/outputs/apk/debug/app-debug.apk
+
+  offline-device:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check emulator acceleration
+        id: acceleration
+        shell: bash
+        run: |
+          if [[ -e /dev/kvm ]]; then
+            echo 'available=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'Device verification skipped. This runner has no KVM.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/setup-java@v4
+        if: steps.acceleration.outputs.available == 'true'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        if: steps.acceleration.outputs.available == 'true'
+        with:
+          packages: platform-tools
+      - name: Enable Android emulator access
+        if: steps.acceleration.outputs.available == 'true'
+        run: sudo chmod a+rw /dev/kvm
+      - name: Run offline native smoke test
+        if: steps.acceleration.outputs.available == 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          working-directory: native-android
+          script: |
+            sdkmanager 'platforms;android-36' 'build-tools;36.0.0'
+            adb shell cmd connectivity airplane-mode enable
+            adb shell svc wifi disable
+            adb shell svc data disable
+            ./gradlew :app:connectedDebugAndroidTest
+            adb shell am start -W -n com.awisogera.votingpostermaker/.MainActivity
+            adb exec-out screencap -p > native-home.png
+      - uses: actions/upload-artifact@v4
+        if: steps.acceleration.outputs.available == 'true' && !cancelled()
+        with:
+          name: voting-poster-maker-device-check
+          path: |
+            native-android/app/build/outputs/androidTest-results/connected/
+            native-android/native-home.png

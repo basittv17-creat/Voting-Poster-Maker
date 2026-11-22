@@ -124,7 +124,12 @@ class PosterRenderer(private val context: Context, private val store: ProjectSto
     }
 
     private fun text(canvas: Canvas, layer: PosterLayer, box: RectF) {
-        val fontStyle = (if (layer.bold) Typeface.BOLD else 0) or (if (layer.italic) Typeface.ITALIC else 0)
+        val fontStyle = when {
+            layer.bold && layer.italic -> Typeface.BOLD_ITALIC
+            layer.bold -> Typeface.BOLD
+            layer.italic -> Typeface.ITALIC
+            else -> Typeface.NORMAL
+        }
         val font = layer.fontAsset?.let { runCatching { Typeface.createFromFile(store.asset(it)) }.getOrNull() }
             ?: Typeface.create(layer.font, Typeface.NORMAL)
         val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
