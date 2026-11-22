@@ -93,6 +93,39 @@ class OfflinePosterTest {
         }
     }
 
+    @Test
+    fun exportsMultilineUrduAndMixedText() {
+        runBlocking {
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            val store = ProjectStore(context)
+            val export = PosterExport(context, PosterRenderer(context, store))
+            val text = PosterLayer(
+                kind = LayerKind.TEXT, name = "Urdu headline", width = 1080f, height = 350f,
+                text = "اپنا ووٹ ضرور ڈالیں\nپاکستان · Vote 2026", fontSize = 85f,
+            )
+            val document = PosterDocument(PosterMode.SINGLE, background = Backdrop(), layers = listOf(text))
+            val rendered = export.render(document, 1200, ExportFormat.PNG)
+            try {
+                val bitmap = requireNotNull(BitmapFactory.decodeFile(rendered.path))
+                try {
+                    val row = IntArray(bitmap.width)
+                    var inkRows = 0
+                    for (y in 0 until bitmap.height) {
+                        bitmap.getPixels(row, 0, row.size, 0, y, row.size, 1)
+                        if (row.count { it ushr 24 > 100 } > 10) inkRows++
+                    }
+                    assertTrue("Text has substantial ink in the export", inkRows > 60)
+                    assertEquals(0, bitmap.getPixel(0, 0) ushr 24)
+                } finally {
+                    bitmap.recycle()
+                }
+                rendered.copyTo(File(context.cacheDir, "urdu-export.png"), overwrite = true)
+            } finally {
+                rendered.delete()
+            }
+        }
+    }
+
     private fun assertMask(bitmap: Bitmap) {
         try {
             val pixels = IntArray(bitmap.width * bitmap.height)

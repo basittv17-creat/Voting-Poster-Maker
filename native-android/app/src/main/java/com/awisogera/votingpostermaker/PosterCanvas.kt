@@ -11,6 +11,8 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.min
@@ -97,7 +99,8 @@ fun PosterCanvas(
             if (!moved && !moveCanvas) notify(layer, true)
         }
     }
-    Canvas(modifier.then(gestures)) {
+    val accessibility = if (vm == null) Modifier else Modifier.semantics { contentDescription = "Poster canvas" }
+    Canvas(modifier.then(gestures).then(accessibility)) {
         val ratio = min(size.width / document.width, size.height / document.height)
         val width = ratio * document.width * zoom
         val height = ratio * document.height * zoom
