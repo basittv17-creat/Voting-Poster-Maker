@@ -103,13 +103,13 @@ private fun PosterApp(vm: EditorViewModel) {
             when (page) {
                 "home" -> Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text("Create a poster", style = MaterialTheme.typography.headlineLarge)
+                    OutlinedButton(onClick = { screen = "projects" }, modifier = Modifier.fillMaxWidth()) { Text("My Designs") }
                     ModeCard(PosterMode.VOTING, "Design a side-by-side poster with two photos.", Color(0xff183876)) {
                         mode = PosterMode.VOTING; screen = "gallery"
                     }
                     ModeCard(PosterMode.SINGLE, "Design a campaign, event or announcement around one photo.", Color(0xff48247a)) {
                         mode = PosterMode.SINGLE; screen = "gallery"
                     }
-                    OutlinedButton(onClick = { screen = "projects" }, modifier = Modifier.fillMaxWidth()) { Text("My Designs") }
                     Row {
                         TextButton(onClick = { screen = "settings" }) { Text("Settings") }
                         TextButton(onClick = { screen = "help" }) { Text("Help") }

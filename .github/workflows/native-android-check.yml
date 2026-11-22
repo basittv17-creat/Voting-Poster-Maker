@@ -81,3 +81,6 @@ jobs:
             native-android/instrumentation-results.txt
             native-android/native-home.png
             native-android/urdu-export.png
+            native-android/navigation-failure.png
+            native-android/failure-activities.txt
+            native-android/failure-logcat.txt

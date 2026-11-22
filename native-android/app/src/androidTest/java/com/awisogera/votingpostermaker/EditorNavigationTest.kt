@@ -13,6 +13,7 @@ import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import java.io.File
+import android.graphics.Bitmap
 import kotlin.math.roundToInt
 import org.junit.Test
 
@@ -23,6 +24,7 @@ class EditorNavigationTest {
     fun eachModeOpensEditorAndBackClosesExportFirst() {
         ActivityScenario.launch(MainActivity::class.java).use {
             for ((mode, template) in listOf("Voting Poster" to "Blue vs Purple", "Single Poster Design" to "Midnight Portrait")) {
+                awaitText("Create a poster")
                 tap(mode)
                 tap(template)
                 tap("Export")
@@ -56,6 +58,7 @@ class EditorNavigationTest {
                 draft.copy(layers = layers).also { store.save(it) }
             }
             ActivityScenario.launch(MainActivity::class.java).use {
+                awaitText("Create a poster")
                 tap("My Designs")
                 tap(seeded.title)
                 var expected = seeded.layers
@@ -106,9 +109,11 @@ class EditorNavigationTest {
         automation.rootInActiveWindow?.let(::visit)
     }
 
-    private fun awaitText(label: String): AccessibilityNodeInfo = awaitNode(label) {
-        val text = it.text?.toString().orEmpty()
-        text == label || text.startsWith("$label,") || text.startsWith("$label\n")
+    private fun awaitText(label: String): AccessibilityNodeInfo = awaitNode(label) { hasLabel(it, label) }
+
+    private fun hasLabel(node: AccessibilityNodeInfo, label: String): Boolean {
+        val text = node.text?.toString().orEmpty()
+        return text == label || text.startsWith("$label,") || text.startsWith("$label\n")
     }
 
     private fun awaitNode(label: String, matches: (AccessibilityNodeInfo) -> Boolean): AccessibilityNodeInfo {
@@ -117,7 +122,20 @@ class EditorNavigationTest {
             nodes().firstOrNull { it.isVisibleToUser && matches(it) }?.let { return it }
             SystemClock.sleep(100)
         } while (SystemClock.uptimeMillis() < deadline)
-        error("Text not visible: $label")
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        automation.takeScreenshot()?.let { screenshot ->
+            try {
+                File(context.cacheDir, "navigation-failure.png").outputStream().use {
+                    screenshot.compress(Bitmap.CompressFormat.PNG, 100, it)
+                }
+            } finally {
+                screenshot.recycle()
+            }
+        }
+        val visible = nodes().filter { it.isVisibleToUser }
+            .map { "${it.packageName}: ${it.text ?: it.contentDescription.orEmpty()}" }
+            .distinct().take(25)
+        error("Text not visible: $label. Visible nodes: $visible")
     }
 
     private fun awaitCondition(message: String, condition: () -> Boolean) {
@@ -130,7 +148,18 @@ class EditorNavigationTest {
     }
 
     private fun tap(label: String) {
-        var node: AccessibilityNodeInfo? = awaitText(label)
+        val findText = { nodes().firstOrNull { it.isVisibleToUser && hasLabel(it, label) } }
+        var candidate = findText()
+        repeat(3) {
+            if (candidate == null) {
+                val scroll = nodes().firstOrNull { it.isVisibleToUser && it.isScrollable }
+                if (scroll?.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD) == true) {
+                    InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+                    candidate = findText()
+                }
+            }
+        }
+        var node: AccessibilityNodeInfo? = candidate ?: awaitText(label)
         while (node != null && !node.isClickable) node = node.parent
         assertTrue("Could not tap $label", node?.performAction(AccessibilityNodeInfo.ACTION_CLICK) == true)
     }
