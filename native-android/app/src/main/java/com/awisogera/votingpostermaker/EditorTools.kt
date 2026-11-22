@@ -93,8 +93,8 @@ fun LayerTools(layer: PosterLayer, vm: EditorViewModel, pick: (String) -> Unit, 
         Adjustment("Font size", layer.fontSize, 22f..220f) { value -> update { it.copy(fontSize = value) } }
         Adjustment("Line spacing", layer.lineSpacing, .8f..2f) { value -> update { it.copy(lineSpacing = value) } }
         ToolRow {
-            textPresets.forEach { (name, gradient) ->
-                Tool(name) { update { it.copy(backdrop = gradient, bold = true, stroke = 3f, shadow = 6f) } }
+            legacyTextPresets.forEach { preset ->
+                Tool(preset.title) { update(preset::applyTo) }
             }
             Tool("Clear text background") { update { it.copy(backdrop = Backdrop()) } }
         }
@@ -126,13 +126,6 @@ fun LayerTools(layer: PosterLayer, vm: EditorViewModel, pick: (String) -> Unit, 
     OutlinedTextField(name, { name = it.take(80) }, label = { Text("Layer name") }, modifier = Modifier.fillMaxWidth())
     if (name.isNotBlank() && name.trim() != layer.name) Tool("Rename") { update { it.copy(name = name.trim()) } }
 }
-
-private val textPresets = listOf(
-    "Royal Gold" to Backdrop(0xff3b2100, 0xfff8d35a), "Neon Purple" to Backdrop(0xff16002e, 0xffa100ff),
-    "Fire Red" to Backdrop(0xff380000, 0xffff3b12), "Ice Blue" to Backdrop(0xff001b3b, 0xff00b9ff),
-    "Emerald" to Backdrop(0xff002e1b, 0xff00a86b), "Carbon Gold" to Backdrop(0xff080808, 0xffb8860b),
-    "Royal Red" to Backdrop(0xff35000d, 0xffc40035), "Cyber" to Backdrop(0xff001b21, 0xff00b8b8),
-)
 
 @Composable
 private fun Adjustment(label: String, current: Float, limits: ClosedFloatingPointRange<Float>, change: (Float) -> Unit) {
@@ -220,9 +213,12 @@ fun CanvasTools(document: PosterDocument, vm: EditorViewModel) {
     OutlinedTextField(title, { title = it.take(100) }, label = { Text("Design name") }, modifier = Modifier.fillMaxWidth())
     Tool("Save name") { if (title.isNotBlank()) vm.edit { it.copy(title = title.trim()) } }
     ToolRow {
-        listOf(1080 to 1080, 1200 to 900, 900 to 1200, 1280 to 720, 720 to 1280,
-            1200 to 800, 800 to 1200, 1250 to 1000, 960 to 1200, 1260 to 540).forEach { (width, height) ->
-            Tool("$width × $height") { vm.edit { it.copy(width = width, height = height) } }
+        legacyCanvasPresets.forEach { preset ->
+            FilterChip(
+                selected = document.width == preset.width && document.height == preset.height,
+                onClick = { vm.edit { it.copy(width = preset.width, height = preset.height) } },
+                label = { Text(preset.title) },
+            )
         }
     }
 }

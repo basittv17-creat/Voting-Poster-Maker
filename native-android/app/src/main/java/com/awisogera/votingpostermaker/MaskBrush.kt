@@ -6,11 +6,15 @@ import kotlin.math.ceil
 import kotlin.math.floor
 import kotlin.math.hypot
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 internal class MaskBrush(private val original: Bitmap, val edited: Bitmap) {
     init {
         require(original.width == edited.width && original.height == edited.height && edited.isMutable)
     }
+
+    private var pixels = IntArray(0)
+    private var source = IntArray(0)
 
     fun dab(x: Float, y: Float, radius: Float, feather: Float, restore: Boolean) {
         val left = floor(x - radius).toInt().coerceIn(0, edited.width)
@@ -20,18 +24,25 @@ internal class MaskBrush(private val original: Bitmap, val edited: Bitmap) {
         val width = right - left
         val height = bottom - top
         if (width == 0 || height == 0) return
-        val pixels = IntArray(width * height)
-        val source = IntArray(pixels.size)
+        val count = width * height
+        if (pixels.size < count) pixels = IntArray(count)
+        if (restore && source.size < count) source = IntArray(count)
         edited.getPixels(pixels, 0, width, left, top, width, height)
-        original.getPixels(source, 0, width, left, top, width, height)
-        for (index in pixels.indices) {
-            val distance = hypot(left + index % width + .5f - x, top + index / width + .5f - y)
-            if (distance >= radius) continue
-            val strength = if (feather == 0f) 1f else ((radius - distance) / (radius * feather)).coerceAtMost(1f)
+        if (restore) original.getPixels(source, 0, width, left, top, width, height)
+        val radiusSquared = radius * radius
+        val solidRadius = radius * (1f - feather)
+        val solidSquared = solidRadius * solidRadius
+        for (index in 0 until count) {
+            val dx = left + index % width + .5f - x
+            val dy = top + index / width + .5f - y
+            val distanceSquared = dx * dx + dy * dy
+            if (distanceSquared >= radiusSquared) continue
+            val strength = if (distanceSquared <= solidSquared) 1f else (radius - sqrt(distanceSquared)) / (radius * feather)
             val current = Color.alpha(pixels[index])
             val desired = if (restore) Color.alpha(source[index]) else 0
             val alpha = (current + (desired - current) * strength).roundToInt()
-            pixels[index] = (alpha shl 24) or (source[index] and 0xffffff)
+            val rgb = if (restore) source[index] else pixels[index]
+            pixels[index] = (alpha shl 24) or (rgb and 0xffffff)
         }
         edited.setPixels(pixels, 0, width, left, top, width, height)
     }

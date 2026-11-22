@@ -158,7 +158,7 @@ class PosterRenderer(private val context: Context, private val store: ProjectSto
             paint.style = Paint.Style.FILL
             paint.color = layer.color.toInt()
         }
-        if (layer.shadow > 0) paint.setShadowLayer(layer.shadow, 2f, 3f, layer.strokeColor.toInt())
+        if (layer.shadow > 0) paint.setShadowLayer(layer.shadow, 2f, 3f, (layer.shadowColor ?: layer.strokeColor).toInt())
         if (layer.accent != 0L && layer.kind == LayerKind.TEXT) {
             paint.shader = LinearGradient(0f, 0f, 0f, layout.height.toFloat().coerceAtLeast(1f),
                 layer.color.toInt(), layer.accent.toInt(), Shader.TileMode.CLAMP)

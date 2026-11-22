@@ -224,7 +224,7 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
         exporting = true
         scope.launch {
             try {
-                val file = vm.exporter.render(document, edge, format)
+                val file = vm.exporter.render(document, if (edge == 0) maxOf(document.width, document.height) else edge, format)
                 when {
                     share -> {
                         val uri = vm.exporter.shareUri(file)
@@ -290,12 +290,12 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                 ToolRow {
                     if (activePreview != null) {
                         Tool("Apply") { vm.applyCutout() }
-                        Tool(if (showOriginal) "Show cutout" else "Show original") {
-                            showOriginal = !showOriginal
-                        }
+                        Tool("Refine edges") { refine = true }
                     }
                     Tool("Cancel") { vm.cancelCutout() }
-                    if (activePreview != null) Tool("Refine edges") { refine = true }
+                    if (activePreview != null) Tool(if (showOriginal) "Show cutout" else "Show original") {
+                        showOriginal = !showOriginal
+                    }
                 }
             }
         }
@@ -343,6 +343,7 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                             ExportFormat.entries.forEach { option -> FilterChip(format == option, { format = option }, { Text(option.name) }) }
                         }
                         ToolRow {
+                            FilterChip(edge == 0, { edge = 0 }, { Text("Canvas size") })
                             listOf(1280, 1920, 3840).forEach { size ->
                                 FilterChip(edge == size, { edge = size }, { Text("${size}px") })
                             }

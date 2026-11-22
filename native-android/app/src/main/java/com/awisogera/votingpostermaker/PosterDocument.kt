@@ -57,6 +57,7 @@ data class PosterLayer(
     val saturation: Float = 1f,
     val warmth: Float = 0f,
     val vignette: Boolean = false,
+    val shadowColor: Long? = null,
 ) {
     fun duplicate(): PosterLayer = copy(
         id = UUID.randomUUID().toString(),

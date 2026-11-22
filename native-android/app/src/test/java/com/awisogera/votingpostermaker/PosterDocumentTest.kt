@@ -47,4 +47,21 @@ class PosterDocumentTest {
         val document = PosterDocument(PosterMode.SINGLE, selectedId = layer.id, layers = listOf(layer))
         assertEquals(document, Json.decodeFromString<PosterDocument>(Json.encodeToString(document)))
     }
+
+    @Test fun legacyPresetsRetainOriginalCanvasAndSeparateOutlineGlow() {
+        assertEquals(11, legacyCanvasPresets.size)
+        assertEquals(CanvasPreset("1280 × 1100", 1280, 1100), legacyCanvasPresets.first())
+        assertEquals(11, legacyCanvasPresets.map { it.width to it.height }.distinct().size)
+        assertEquals(8, legacyTextPresets.size)
+        val neon = legacyTextPresets.first { it.title == "Neon Purple" }
+        val layer = PosterLayer(kind = LayerKind.TEXT, name = "Urdu", text = "ووٹ", fontAsset = "custom")
+        val styled = neon.applyTo(layer)
+        assertEquals(layer.id, styled.id)
+        assertEquals(layer.text, styled.text)
+        assertEquals(0xff28004b, styled.strokeColor)
+        assertEquals(0xffed5cff, styled.shadowColor)
+        assertNull(styled.fontAsset)
+        assertEquals(styled, Json.decodeFromString<PosterLayer>(Json.encodeToString(styled)))
+    }
+
 }
