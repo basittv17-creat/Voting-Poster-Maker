@@ -163,9 +163,10 @@ class EditorNavigationTest {
                 }
             }
         }
-        var node: AccessibilityNodeInfo? = candidate ?: awaitText(label)
-        while (node != null && !node.isClickable) node = node.parent
-        assertTrue("Could not tap $label", node?.performAction(AccessibilityNodeInfo.ACTION_CLICK) == true)
+        val bounds = Rect()
+        (candidate ?: awaitText(label)).getBoundsInScreen(bounds)
+        assertTrue("No visible touch bounds for $label", !bounds.isEmpty)
+        shell("input tap ${bounds.centerX()} ${bounds.centerY()}")
     }
 
     private fun back() = shell("input keyevent KEYCODE_BACK")
