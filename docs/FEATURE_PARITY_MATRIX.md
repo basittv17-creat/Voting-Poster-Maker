@@ -8,7 +8,7 @@
 | Green & Gold, Tagda Muqabla #1, white divider | Frame assets and PosterRenderer | Asset extraction and frame selection | Visual parity pending |
 | Text, typeface, stroke, background and resize | Text layer and StaticLayout | Multiline text, Android shaping, font import, basic styling and transforms | Urdu serialization and visual check of the mixed Urdu/English PNG passed. Imported fonts and preview comparison remain open. |
 | Eight 3D text backgrounds | Text presets | Eight legacy presets carry gradient, text fill, outline and glow colors, with Android font equivalents | Pixel comparison and typography-device matrix pending |
-| Sticker and emoji palettes | Glyph layers | Initial native catalogs | Device verification pending |
+| Sticker and emoji palettes | Glyph layers | Legacy catalogs and distinct initial sizes and positions preserved | Source values verified. Pixel comparison remains open. |
 | Ten ratios plus original 1280 × 1100 | Canvas toolbar and Canvas size export | All eleven named legacy dimensions available | Visual comparison and native-size export UI verification pending |
 | PNG gallery export and file sharing | Native PosterExport | Native PNG/JPEG renderer and share routing implemented | MediaStore save and readable share attachments verified on API 35. Share-sheet recipient and API 24–28 picker remain open. |
 | WhatsApp and Facebook fallback | Android share sheet | Installed apps can receive the image attachment | Device verification pending |

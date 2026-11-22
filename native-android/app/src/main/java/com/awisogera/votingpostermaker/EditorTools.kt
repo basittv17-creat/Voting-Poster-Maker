@@ -159,9 +159,9 @@ fun ElementTools(vm: EditorViewModel) {
         }
     }
     Text("Stickers")
-    GlyphTools(vm, stickers)
+    GlyphTools(vm, stickers, sticker = true)
     Text("Emoji")
-    GlyphTools(vm, emoji)
+    GlyphTools(vm, emoji, sticker = false)
     ToolRow {
         listOf("Green & Gold" to "green_gold", "Tagda Muqabla #1" to "tagda_muqabla").forEach { (name, asset) ->
             Tool(name) { vm.add(PosterLayer(kind = LayerKind.FRAME, name = name, style = asset,
@@ -171,10 +171,9 @@ fun ElementTools(vm: EditorViewModel) {
 }
 
 @Composable
-private fun GlyphTools(vm: EditorViewModel, glyphs: List<String>) = ToolRow {
+private fun GlyphTools(vm: EditorViewModel, glyphs: List<String>, sticker: Boolean) = ToolRow {
     glyphs.forEach { glyph ->
-        Tool(glyph) { vm.add(PosterLayer(kind = LayerKind.STICKER, name = glyph, text = glyph,
-            width = 260f, height = 190f, fontSize = 110f)) }
+        Tool(glyph) { vm.add(legacyGlyph(glyph, sticker)) }
     }
 }
 

@@ -50,3 +50,18 @@ internal val legacyTextPresets = listOf(
     LegacyTextPreset("Royal Red", Backdrop(0xff35000d, 0xffc40035), 0xffffffff, 0xff37000a, 0xffff4668, "serif"),
     LegacyTextPreset("Cyber", Backdrop(0xff001b21, 0xff00b8b8), 0xffe8ffff, 0xff00282d, 0xff00ffff, "sans-serif-black"),
 )
+
+
+internal fun legacyGlyph(glyph: String, sticker: Boolean): PosterLayer {
+    val size = if (sticker) 230f else 72f
+    return PosterLayer(
+        kind = LayerKind.STICKER,
+        name = glyph,
+        text = glyph,
+        x = 600f,
+        y = if (sticker) 330f else 250f,
+        width = size * if (glyph == "🍼💧") 2.5f else 1.56f,
+        height = size * 1.56f,
+        fontSize = size,
+    )
+}

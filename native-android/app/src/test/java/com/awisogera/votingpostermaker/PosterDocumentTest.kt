@@ -64,4 +64,17 @@ class PosterDocumentTest {
         assertEquals(styled, Json.decodeFromString<PosterLayer>(Json.encodeToString(styled)))
     }
 
+
+    @Test fun stickerAndEmojiKeepSeparateLegacyPlacementAndSize() {
+        val sticker = legacyGlyph("⭐", sticker = true)
+        val emoji = legacyGlyph("😀", sticker = false)
+        assertEquals(600f, sticker.x, 0f)
+        assertEquals(600f, emoji.x, 0f)
+        assertEquals(330f, sticker.y, 0f)
+        assertEquals(250f, emoji.y, 0f)
+        assertEquals(230f, sticker.fontSize, 0f)
+        assertEquals(72f, emoji.fontSize, 0f)
+        assertTrue(legacyGlyph("🍼💧", sticker = true).width > sticker.width)
+    }
+
 }
