@@ -73,6 +73,10 @@ class EditorNavigationTest {
                     shell("input swipe $startX $startY ${startX + 32} $startY 400")
                     val moved = persisted(store, seeded.id) { it.selectedId == layer.id && it.selected!!.x > layer.x }
                     assertEquals(expected.filterNot { it.id == layer.id }, moved.layers.filterNot { it.id == layer.id })
+                    tap("Undo")
+                    persisted(store, seeded.id) { it.layers == expected }
+                    tap("Redo")
+                    persisted(store, seeded.id) { it.layers == moved.layers }
                     expected = moved.layers
                 }
             }

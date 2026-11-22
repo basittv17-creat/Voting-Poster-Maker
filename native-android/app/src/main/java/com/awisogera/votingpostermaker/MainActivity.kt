@@ -355,6 +355,8 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                 if (photo.asset == null && !photo.locked) pick(photo.id)
             }
         }
+        Tool("Undo", vm::undo)
+        Tool("Redo", vm::redo)
         Tool("Background") { panel = "Background" }
         Tool("Text") {
             vm.add(PosterLayer(kind = LayerKind.TEXT, name = "Text", width = 820f, height = 230f, text = "Your headline"))
@@ -365,8 +367,6 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
         Tool("Layers") { panel = "Layers" }
         Tool("Canvas") { panel = "Canvas" }
         Tool("Import image") { pick("new") }
-        Tool("Undo", vm::undo)
-        Tool("Redo", vm::redo)
     }
 }
 
