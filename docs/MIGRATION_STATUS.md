@@ -15,7 +15,7 @@ The native editor is a development checkpoint in [draft PR #1](https://github.co
 
 1. Check out the draft PR head on a KVM-backed Android emulator or physical device. Use the successful build and instrumentation artifacts linked in `TEST_RESULTS.md` as the baseline.
 2. Execute the remaining manual `TEST_PLAN.md` scenarios, starting with interactive Photo Picker and toolbar walkthroughs in airplane mode for both modes. Record per-step results and screenshots. Compare the original implementation on the same device, including crop gestures, framing, artwork and export.
-3. Finish editor gaps including manual mask refinement, higher-resolution mask storage, background artwork categories, dedicated template management, additional photo effects (blur and sharpness), text letter spacing and curved text, grouping, copy/paste, multi-selection, smart alignment and richer VS artwork. Add targeted instrumentation and complete device QA for Urdu shaping, save/reopen, export and small screens.
+3. Finish editor gaps including manual mask refinement, higher-resolution mask storage, background artwork categories, dedicated template management, additional photo effects (blur and sharpness), text letter spacing and curved text, grouping, multi-selection, smart alignment and richer VS artwork. Add targeted instrumentation and complete device QA for Urdu shaping, save/reopen, export and small screens.
 4. Validate signing certificate lineage and the upgrade path. Keep the migration in draft until the acceptance criteria pass.
 
 ## Continuation from the Drive handoff
@@ -26,6 +26,14 @@ The native CI build now assembles both APKs in one job. The emulator installs th
 
 Release signing review confirmed matching application IDs and an increased version code (10 to 11). The native build can opt in to release signing via a private properties file. A trusted production certificate or signed baseline and an authorized signing path are required to verify lineage and run the in-place upgrade. A debug install cannot establish production upgrade compatibility.
 
-The latest application CI passed the API 35 checks for independent A/B touch and drag, both editor entry points, panel Back navigation, offline segmentation and reopening, PNG/JPEG gallery output and mixed Urdu/English PNG export. Test results and artifacts are linked from `TEST_RESULTS.md`.
+The earlier application CI at `3914410` passed the API 35 checks for independent A/B touch and drag, both editor entry points, panel Back navigation, offline segmentation and reopening, PNG/JPEG gallery output and mixed Urdu/English PNG export. Test results and artifacts are linked from `TEST_RESULTS.md`.
 
 Before merge, complete interactive system Photo Picker replacement, pinch/rotate and undo/redo checks, the compact layout and font scale matrix, external share recipients, API 24–28 export, full legacy artwork and template parity, remaining editor features, and production signing with a signed in-place upgrade. The existing Capacitor release continues from `main`.
+
+## Master Command continuation
+
+My Designs now appears near the top of the home screen. Undo and Redo are next to the photo slots. Copy layer and Paste layer use an in-app clipboard for the current session and preserve independently editable layer IDs. The offline cutout preview can show the original or cutout before Apply without writing either preview to the project.
+
+The navigation failure did not reproduce on the original APK retry. Failure screenshots and foreground diagnostics are now captured in CI. Release gates continue to include interactive Photo Picker replacement, full gesture and layout coverage, manual mask refinement, remaining artwork and advanced tools, and a production-signed upgrade. The Capacitor release stays on `main` until these gates are met.
+
+The [application check for ceed223](https://github.com/basittv17-creat/Voting-Poster-Maker/actions/runs/44998128942) passed both GitHub jobs, including four API 35 instrumentation tests. Full legacy parity, the remaining editor features and the required production-signed in-place upgrade are still open.
