@@ -69,6 +69,8 @@ jobs:
             bash scripts/device-check.sh
             adb exec-out run-as com.awisogera.votingpostermaker cat cache/urdu-export.png > urdu-export.png
             test -s urdu-export.png
+            adb exec-out run-as com.awisogera.votingpostermaker cat cache/mask-refinement.png > mask-refinement.png
+            test -s mask-refinement.png
             adb shell am start -W -n com.awisogera.votingpostermaker/.MainActivity
             adb shell uiautomator dump /sdcard/voting-poster-home.xml
             adb shell cat /sdcard/voting-poster-home.xml | grep -F "Single Poster Design"
@@ -81,6 +83,7 @@ jobs:
             native-android/instrumentation-results.txt
             native-android/native-home.png
             native-android/urdu-export.png
+            native-android/mask-refinement.png
             native-android/navigation-failure.png
             native-android/failure-activities.txt
             native-android/failure-logcat.txt

@@ -8,6 +8,8 @@ import android.net.Uri
 import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import android.provider.MediaStore
+import android.view.InputDevice
+import android.view.MotionEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.test.core.app.ActivityScenario
 import androidx.test.filters.SdkSuppress
@@ -19,7 +21,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import java.io.File
 import android.graphics.Bitmap
+import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.roundToInt
+import kotlin.math.sin
 import org.junit.Test
 import java.util.UUID
 
@@ -84,7 +89,19 @@ class EditorNavigationTest {
                     persisted(store, seeded.id) { it.layers == expected }
                     tap("Redo")
                     persisted(store, seeded.id) { it.layers == moved.layers }
-                    expected = moved.layers
+                    val movedLayer = moved.layers.first { it.id == layer.id }
+                    val (pinchX, pinchY) = centerOnCanvas(movedLayer)
+                    pinchAndRotate(pinchX, pinchY)
+                    val transformed = persisted(store, seeded.id) {
+                        val actual = it.layers.first { candidate -> candidate.id == layer.id }
+                        actual.scale > movedLayer.scale * 1.1f && abs(actual.rotation - movedLayer.rotation) > 10f
+                    }
+                    assertEquals(moved.layers.filterNot { it.id == layer.id }, transformed.layers.filterNot { it.id == layer.id })
+                    tap("Undo")
+                    persisted(store, seeded.id) { it.layers == moved.layers }
+                    tap("Redo")
+                    persisted(store, seeded.id) { it.layers == transformed.layers }
+                    expected = transformed.layers
                 }
             }
         } finally {
@@ -123,6 +140,7 @@ class EditorNavigationTest {
                 touch(awaitNode("Cutout brush canvas") {
                     it.contentDescription?.toString() == "Cutout brush canvas"
                 }, "cutout brush canvas")
+                capture("mask-refinement.png")
                 tap("Done")
                 awaitText("Preview background removal")
                 tap("Apply")
@@ -218,6 +236,44 @@ class EditorNavigationTest {
         }
     }
 
+    private fun pinchAndRotate(centerX: Int, centerY: Int) {
+        val downTime = SystemClock.uptimeMillis()
+        val properties = Array(2) { index ->
+            MotionEvent.PointerProperties().apply {
+                id = index
+                toolType = MotionEvent.TOOL_TYPE_FINGER
+            }
+        }
+        fun send(action: Int, fingers: Int, radius: Float, angle: Double) {
+            val coordinates = Array(fingers) { index ->
+                val direction = if (index == 0) -1 else 1
+                MotionEvent.PointerCoords().apply {
+                    x = centerX + direction * radius * cos(angle).toFloat()
+                    y = centerY + direction * radius * sin(angle).toFloat()
+                    pressure = 1f
+                    size = .1f
+                }
+            }
+            val event = MotionEvent.obtain(
+                downTime, SystemClock.uptimeMillis(), action, fingers,
+                properties.copyOfRange(0, fingers), coordinates, 0, 0,
+                1f, 1f, 0, 0, InputDevice.SOURCE_TOUCHSCREEN, 0,
+            )
+            try {
+                assertTrue("Android rejected touch action $action", automation.injectInputEvent(event, true))
+            } finally { event.recycle() }
+            SystemClock.sleep(25)
+        }
+        val indexOne = 1 shl MotionEvent.ACTION_POINTER_INDEX_SHIFT
+        send(MotionEvent.ACTION_DOWN, 1, 16f, 0.0)
+        send(MotionEvent.ACTION_POINTER_DOWN or indexOne, 2, 16f, 0.0)
+        for (step in 1..8) {
+            send(MotionEvent.ACTION_MOVE, 2, 16f + step, Math.toRadians(step * 5.0))
+        }
+        send(MotionEvent.ACTION_POINTER_UP or indexOne, 2, 24f, Math.toRadians(40.0))
+        send(MotionEvent.ACTION_UP, 1, 24f, Math.toRadians(40.0))
+    }
+
     private fun centerOnCanvas(layer: PosterLayer): Pair<Int, Int> {
         val bounds = Rect()
         awaitNode("Poster canvas") { it.contentDescription?.toString() == "Poster canvas" }.getBoundsInScreen(bounds)
@@ -257,20 +313,22 @@ class EditorNavigationTest {
             nodes().firstOrNull { it.isVisibleToUser && matches(it) }?.let { return it }
             SystemClock.sleep(100)
         } while (SystemClock.uptimeMillis() < deadline)
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        automation.takeScreenshot()?.let { screenshot ->
-            try {
-                File(context.cacheDir, "navigation-failure.png").outputStream().use {
-                    screenshot.compress(Bitmap.CompressFormat.PNG, 100, it)
-                }
-            } finally {
-                screenshot.recycle()
-            }
-        }
+        capture("navigation-failure.png")
         val visible = nodes().filter { it.isVisibleToUser }
             .map { "${it.packageName}: ${(it.text ?: it.contentDescription)?.toString().orEmpty()}" }
             .distinct().take(25)
         error("Text not visible: $label. Visible nodes: $visible")
+    }
+
+    private fun capture(name: String) {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        automation.takeScreenshot()?.let { screenshot ->
+            try {
+                File(context.cacheDir, name).outputStream().use {
+                    screenshot.compress(Bitmap.CompressFormat.PNG, 100, it)
+                }
+            } finally { screenshot.recycle() }
+        }
     }
 
     private fun awaitCondition(message: String, condition: () -> Boolean) {

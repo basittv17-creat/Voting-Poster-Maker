@@ -12,3 +12,6 @@ The native application uses version code 11 and version name 11.0. Before cutove
 4. On a dedicated device, install the trusted legacy release, save a poster and export it. Install the matching production-signed native APK in place using `adb install -r`, preserving installed app data. Confirm launch, access to existing gallery outputs, and a new native save/export. For Play or split APKs, use a trusted internal track and verify the update in place.
 
 [Android app signing](https://developer.android.com/studio/publish/app-signing) · [apksigner](https://developer.android.com/tools/apksigner)
+
+
+The historical Capacitor [signed release AAB artifact](https://github.com/basittv17-creat/Voting-Poster-Maker/actions/runs/39579485244/artifacts/12335498184) is available as an upload-signing reference. Production upgrade verification remains open. The release owner must configure `VPM_RELEASE_SIGNING_FILE` on the trusted release workstation and provide the actual installed production baseline to the upgrade test. Keep the signing files and passwords there and record only public certificate fingerprints and test results.

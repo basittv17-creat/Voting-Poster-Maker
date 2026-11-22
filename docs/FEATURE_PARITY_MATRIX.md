@@ -3,7 +3,7 @@
 | Existing feature | Native component | Implementation status | Test result |
 | --- | --- | --- | --- |
 | Launcher and app identity | Native MainActivity and theme | Initial native entry point and preserved application ID | Install and signed upgrade pending |
-| Independent A/B photo import, replacement, pan and zoom | Photo Picker, EditorViewModel and PosterCanvas | Initial native implementation | Layer state isolation and hit-test unit checks passed. Direct A/B selection, drag isolation and gesture Undo/Redo verified on API 35. Picker replacement and multi-touch remain open. |
+| Independent A/B photo import, replacement, pan and zoom | Photo Picker, EditorViewModel and PosterCanvas | Initial native implementation | Layer state isolation and hit-test unit checks passed. Direct A/B selection, drag isolation and gesture Undo/Redo verified on API 35. System Photo Picker import and replacement passed for A, B and Single. The current PR also exercises two-finger rotation and scaling. |
 | Global solid backgrounds | Background toolbar and PosterRenderer | All 15 legacy swatches plus new gradients | Visual parity pending |
 | Green & Gold, Tagda Muqabla #1, white divider | Frame assets and PosterRenderer | Asset extraction and frame selection | Visual parity pending |
 | Text, typeface, stroke, background and resize | Text layer and StaticLayout | Multiline text, Android shaping, font import, basic styling and transforms | Urdu serialization and visual check of the mixed Urdu/English PNG passed. Imported fonts and preview comparison remain open. |
