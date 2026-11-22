@@ -293,9 +293,9 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                         Tool("Refine edges") { refine = true }
                     }
                     Tool("Cancel") { vm.cancelCutout() }
-                    if (activePreview != null) Tool(if (showOriginal) "Show cutout" else "Show original") {
-                        showOriginal = !showOriginal
-                    }
+                }
+                if (activePreview != null) TextButton(onClick = { showOriginal = !showOriginal }) {
+                    Text(if (showOriginal) "Show cutout" else "Show original")
                 }
             }
         }

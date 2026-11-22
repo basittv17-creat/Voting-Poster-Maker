@@ -32,6 +32,7 @@ class EditorNavigationTest {
             for ((mode, template) in listOf("Voting Poster" to "Blue vs Purple", "Single Poster Design" to "Midnight Portrait")) {
                 awaitText("Create a poster")
                 tap(mode)
+                awaitText(template)
                 tap(template)
                 tap("Export")
                 awaitText("PNG")
@@ -90,6 +91,53 @@ class EditorNavigationTest {
             runBlocking { PosterDatabase.get(context).posters().delete(draft.id) }
             imported.forEach { store.asset(it).delete() }
             original.delete()
+        }
+    }
+
+    @Test
+    fun offlineCutoutPreviewCanBeComparedRefinedAppliedAndUndone() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        val store = ProjectStore(context)
+        val source = store.newAsset()
+        val template = templates(PosterMode.VOTING).first().create(PosterMode.VOTING)
+        val slot = template.layers.first { it.slot == "A" }
+        val fixture = template.updateLayer(slot.id) { it.copy(asset = source.name) }.copy(title = "Mask refinement fixture")
+        var refined: String? = null
+        try {
+            instrumentation.context.assets.open("astronaut.jpg").use { input ->
+                source.outputStream().use { input.copyTo(it) }
+            }
+            runBlocking { store.save(fixture) }
+            ActivityScenario.launch(MainActivity::class.java).use {
+                awaitText("Create a poster")
+                tap("My Designs")
+                tap(fixture.title)
+                tap("A")
+                tap("Remove Background")
+                awaitText("Preview background removal")
+                tap("Show original")
+                awaitText("Show cutout")
+                tap("Show cutout")
+                tap("Refine edges")
+                touch(awaitNode("Cutout brush canvas") {
+                    it.contentDescription?.toString() == "Cutout brush canvas"
+                }, "cutout brush canvas")
+                tap("Done")
+                awaitText("Preview background removal")
+                tap("Apply")
+                val applied = persisted(store, fixture.id) { it.layers.first { layer -> layer.id == slot.id }.cutout != null }
+                val appliedSlot = applied.layers.first { it.id == slot.id }
+                refined = appliedSlot.cutout
+                assertEquals(source.name, appliedSlot.asset)
+                assertEquals(fixture.layers.filterNot { it.id == slot.id }, applied.layers.filterNot { it.id == slot.id })
+                tap("Undo")
+                persisted(store, fixture.id) { it.layers == fixture.layers }
+            }
+        } finally {
+            runBlocking { PosterDatabase.get(context).posters().delete(fixture.id) }
+            source.delete()
+            refined?.let { store.asset(it).delete() }
         }
     }
 
@@ -237,13 +285,21 @@ class EditorNavigationTest {
 
     private fun tap(label: String) {
         val findText = { nodes().firstOrNull { it.isVisibleToUser && hasLabel(it, label) } }
-        var candidate = findText()
+        fun waitForTarget(): AccessibilityNodeInfo? {
+            val deadline = SystemClock.uptimeMillis() + 750
+            do {
+                findText()?.let { return it }
+                SystemClock.sleep(50)
+            } while (SystemClock.uptimeMillis() < deadline)
+            return null
+        }
+        var candidate = waitForTarget()
         repeat(3) {
             if (candidate == null) {
                 val scroll = nodes().firstOrNull { it.isVisibleToUser && it.isScrollable }
                 if (scroll?.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD) == true) {
                     InstrumentationRegistry.getInstrumentation().waitForIdleSync()
-                    candidate = findText()
+                    candidate = waitForTarget()
                 }
             }
         }
