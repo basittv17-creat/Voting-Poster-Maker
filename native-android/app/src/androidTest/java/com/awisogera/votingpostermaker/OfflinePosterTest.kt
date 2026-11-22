@@ -2,6 +2,7 @@ package com.awisogera.votingpostermaker
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
 import android.net.Uri
 import android.provider.Settings
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -56,14 +57,33 @@ class OfflinePosterTest {
                     val saved = requireNotNull(store.projects.first().find { it.id == document.id })
                     val reopened = store.read(saved)
                     assertEquals(document, reopened)
-                    val file = exporter.render(reopened, 1280, ExportFormat.PNG)
-                    try {
-                        val bitmap = requireNotNull(BitmapFactory.decodeFile(file.path))
+                    for (format in ExportFormat.entries) {
+                        val file = exporter.render(reopened, 1280, format)
                         try {
-                            assertEquals(1280, bitmap.width)
-                            assertEquals(960, bitmap.height)
-                        } finally { bitmap.recycle() }
-                    } finally { file.delete() }
+                            val share = exporter.shareUri(file)
+                            assertEquals(format.mime, context.contentResolver.getType(share))
+                            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                            requireNotNull(context.contentResolver.openInputStream(share)).use {
+                                BitmapFactory.decodeStream(it, null, bounds)
+                            }
+                            assertEquals(1280, bounds.outWidth)
+                            assertEquals(960, bounds.outHeight)
+                            assertEquals(format.mime, bounds.outMimeType)
+                            if (Build.VERSION.SDK_INT >= 29) {
+                                val gallery = exporter.saveToGallery(file, format)
+                                try {
+                                    assertEquals(format.mime, context.contentResolver.getType(gallery))
+                                    requireNotNull(context.contentResolver.openInputStream(gallery)).use {
+                                        assertTrue(it.read() >= 0)
+                                    }
+                                } finally {
+                                    context.contentResolver.delete(gallery, null, null)
+                                }
+                            }
+                        } finally {
+                            file.delete()
+                        }
+                    }
                 } finally {
                     PosterDatabase.get(context).posters().delete(document.id)
                     originalKeys.forEach { store.asset(it).delete() }

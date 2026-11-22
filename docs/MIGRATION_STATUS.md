@@ -17,3 +17,11 @@ The native editor is a development checkpoint in [draft PR #1](https://github.co
 2. Execute the remaining manual `TEST_PLAN.md` scenarios, starting with interactive Photo Picker and toolbar walkthroughs in airplane mode for both modes. Record per-step results and screenshots. Compare the original implementation on the same device, including crop gestures, framing, artwork and export.
 3. Finish editor gaps including manual mask refinement, higher-resolution mask storage, background artwork categories, dedicated template management, additional photo effects (blur and sharpness), text letter spacing and curved text, grouping, copy/paste, multi-selection, smart alignment and richer VS artwork. Add targeted instrumentation and complete device QA for Urdu shaping, save/reopen, export and small screens.
 4. Validate signing certificate lineage and the upgrade path. Keep the migration in draft until the acceptance criteria pass.
+
+## Continuation from the Drive handoff
+
+The five supplied mockups guided the dark toolbar and status bar treatment, panel dismissal and compact two-mode navigation checks. This change leaves the existing artwork catalogs and Capacitor release workflow in place.
+
+The native CI build now assembles both APKs in one job. The emulator installs those exact artifacts and executes instrumentation directly, so its test phase needs no Maven resolution. Missing emulator access fails the device job. Navigation coverage exercises both modes and Back dismissal of the docked Export panel before leaving the editor. The airplane-mode engine test also exercises PNG and JPEG through both the share content provider and MediaStore.
+
+Release signing review confirmed matching application IDs and an increased version code (10 to 11). The native build currently has no production release signing configuration. A trusted production certificate or signed baseline and an authorized signing path are required to verify lineage and run the in-place upgrade. A debug install cannot establish production upgrade compatibility.

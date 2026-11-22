@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -41,7 +42,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
         setContent {
             MaterialTheme(colorScheme = darkColorScheme(
                 primary = Color(0xff64e5fb), secondary = Color(0xffc8afff),
@@ -189,13 +190,17 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
     var viewportPan by remember(document.id) { mutableStateOf(Offset.Zero) }
     var moveCanvas by rememberSaveable(document.id) { mutableStateOf(false) }
     var showGrid by rememberSaveable(document.id) { mutableStateOf(false) }
+    BackHandler(processing || preview != null || panel.isNotEmpty()) {
+        if (processing || preview != null) vm.cancelCutout() else panel = ""
+    }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) {
         if (it != null) vm.import(it, pickTarget, pickDocument)
     }
     val fontPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {
         if (it != null) vm.import(it, pickTarget, pickDocument)
     }
-    val savePicker = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
+    val savePicker = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val uri = result.data?.data.takeIf { result.resultCode == android.app.Activity.RESULT_OK }
         val file = pendingExport?.let(::File)
         pendingExport = null
         if (uri != null && file != null) scope.launch {
@@ -236,7 +241,11 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                     }
                     else -> {
                         pendingExport = file.path
-                        savePicker.launch(file.name)
+                        savePicker.launch(Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                            addCategory(Intent.CATEGORY_OPENABLE)
+                            type = format.mime
+                            putExtra(Intent.EXTRA_TITLE, file.name)
+                        })
                     }
                 }
             } catch (e: CancellationException) {
