@@ -13,3 +13,9 @@
 | Memory | Check 4K with layered photos, large EXIF JPEG files, repeated replacements and background-removal cancellation. |
 | Legacy comparison | Play through the original build, compare artwork, divider, text presets, photo crop, sticker catalogs and export, and record discrepancies. |
 | Signed upgrade | Install the last signed legacy build, then install a native release signed with the same lineage. Verify app ID, version increase, and access to legacy gallery outputs. |
+
+## Automated coverage and remaining manual checks
+
+The API 35 run installs debug and instrumentation APKs from the verify job, enables airplane mode, and exercises both editor entry points, tool-panel Back navigation, direct selection and drag isolation of seeded photos, offline segmentation, project reopening, and PNG/JPEG output. The Urdu render is captured from the native renderer as a separate artifact. Production signing is a separate release gate.
+
+Use a physical device or emulator for the system Photo Picker replacement flow, pinch and rotate, undo/redo, font scaling at 1.3× or higher, and 320×640, 360×800 and 412×915 dp layout checks. Verify the share sheet with a recipient app and the document-picker export fallback on API 24–28. Compare the native artwork and templates with the installed legacy app before marking parity complete.
