@@ -263,8 +263,9 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
 
     val selected = document.selected
     val activePreview = preview?.takeIf { it.documentId == document.id }
+    var showOriginal by rememberSaveable(activePreview?.image) { mutableStateOf(false) }
     val displayed = if (activePreview == null) document else document.updateLayer(activePreview.layerId) {
-        if (it.asset == activePreview.original) it.copy(cutout = activePreview.image) else it
+        if (it.asset == activePreview.original) it.copy(cutout = if (showOriginal) null else activePreview.image) else it
     }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         TextButton(onClick = close) { Text("Home") }
@@ -285,7 +286,12 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
             Column(Modifier.fillMaxWidth().padding(12.dp)) {
                 Text(if (processing) "Removing background on this device…" else "Preview background removal")
                 ToolRow {
-                    if (activePreview != null) Tool("Apply") { vm.applyCutout() }
+                    if (activePreview != null) {
+                        Tool("Apply") { vm.applyCutout() }
+                        Tool(if (showOriginal) "Show cutout" else "Show original") {
+                            showOriginal = !showOriginal
+                        }
+                    }
                     Tool("Cancel") { vm.cancelCutout() }
                 }
             }
