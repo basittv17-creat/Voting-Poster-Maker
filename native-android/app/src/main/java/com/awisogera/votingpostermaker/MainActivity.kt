@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -172,7 +173,7 @@ private fun ModeCard(mode: PosterMode, subtitle: String, color: Color, open: () 
 }
 
 @Composable
-private fun EditorScreen(document: PosterDocument, vm: EditorViewModel, close: () -> Unit) {
+private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewModel, close: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val processing by vm.busy.collectAsStateWithLifecycle()
@@ -184,6 +185,10 @@ private fun EditorScreen(document: PosterDocument, vm: EditorViewModel, close: (
     var exporting by remember { mutableStateOf(false) }
     var format by rememberSaveable { mutableStateOf(ExportFormat.PNG) }
     var edge by rememberSaveable { mutableIntStateOf(1920) }
+    var viewportZoom by rememberSaveable(document.id) { mutableFloatStateOf(1f) }
+    var viewportPan by remember(document.id) { mutableStateOf(Offset.Zero) }
+    var moveCanvas by rememberSaveable(document.id) { mutableStateOf(false) }
+    var showGrid by rememberSaveable(document.id) { mutableStateOf(false) }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) {
         if (it != null) vm.import(it, pickTarget, pickDocument)
     }
@@ -256,7 +261,10 @@ private fun EditorScreen(document: PosterDocument, vm: EditorViewModel, close: (
         Text(document.title, Modifier.weight(1f), maxLines = 1)
         TextButton(onClick = { panel = "Export" }) { Text("Export") }
     }
-    PosterCanvas(displayed, vm.renderer, Modifier.weight(1f).fillMaxWidth(), vm) { layer, tapped ->
+    PosterCanvas(displayed, vm.renderer, Modifier.weight(1f).fillMaxWidth(), vm,
+        zoom = viewportZoom, pan = viewportPan, moveCanvas = moveCanvas, showGrid = showGrid,
+        onViewport = { zoom, pan -> viewportZoom = zoom; viewportPan = pan },
+    ) { layer, tapped ->
         if (layer != null) {
             panel = "Selection"
             if (tapped && layer.kind == LayerKind.PHOTO && layer.asset == null) pick(layer.id)
@@ -293,7 +301,19 @@ private fun EditorScreen(document: PosterDocument, vm: EditorViewModel, close: (
                     }
                     "Elements" -> ElementTools(vm)
                     "VS Styles" -> VsTools(document, vm)
-                    "Canvas" -> CanvasTools(document, vm)
+                    "Canvas" -> {
+                        ToolRow {
+                            Tool(if (moveCanvas) "Edit layers" else "Pan / pinch canvas") { moveCanvas = !moveCanvas }
+                            Tool("Zoom in") { viewportZoom = (viewportZoom + .25f).coerceAtMost(4f) }
+                            Tool("Zoom out") {
+                                viewportZoom = (viewportZoom - .25f).coerceAtLeast(1f)
+                                if (viewportZoom == 1f) viewportPan = Offset.Zero
+                            }
+                            Tool("Reset view") { viewportZoom = 1f; viewportPan = Offset.Zero; moveCanvas = false }
+                            Tool(if (showGrid) "Hide grid" else "Show grid") { showGrid = !showGrid }
+                        }
+                        CanvasTools(document, vm)
+                    }
                     "Export" -> {
                         ToolRow {
                             ExportFormat.entries.forEach { option -> FilterChip(format == option, { format = option }, { Text(option.name) }) }
