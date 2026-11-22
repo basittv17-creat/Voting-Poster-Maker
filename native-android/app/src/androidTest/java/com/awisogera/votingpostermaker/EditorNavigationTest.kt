@@ -143,7 +143,6 @@ class EditorNavigationTest {
 
     @Test
     @SdkSuppress(minSdkVersion = 33)
-    @androidx.annotation.RequiresApi(33)
     fun systemPhotoPickerImportsAndReplacesEachVotingAndSingleSlot() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val resolver = context.contentResolver

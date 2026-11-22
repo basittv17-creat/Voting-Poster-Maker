@@ -37,3 +37,9 @@ My Designs now appears near the top of the home screen. Undo and Redo are next t
 The navigation failure did not reproduce on the original APK retry. Failure screenshots and foreground diagnostics are now captured in CI. Release gates continue to include interactive Photo Picker replacement, full gesture and layout coverage, manual mask refinement, remaining artwork and advanced tools, and a production-signed upgrade. The Capacitor release stays on `main` until these gates are met.
 
 The [application check for ceed223](https://github.com/basittv17-creat/Voting-Poster-Maker/actions/runs/44998128942) passed both GitHub jobs, including four API 35 instrumentation tests. Full legacy parity, the remaining editor features and the required production-signed in-place upgrade are still open.
+
+## Mask, Photo Picker and legacy preset follow-up
+
+The offline background preview now has Erase and Restore brushes with adjustable size and edge feathering. The original stays intact. The legacy audit found eleven canvas choices including the original 1280 × 1100. Native now offers all eleven and a Canvas size export option. The eight text presets carry their legacy fill, outline and glow settings using Android font equivalents. These changes do not establish visual parity across the whole editor.
+
+CI covers layered 3840 × 2880 PNG output, mask pixels, the compare/refine/apply/undo flow, and system Photo Picker import and replacement for each A/B and Single slot. See the current PR checks for the outcome of these scenarios. Full device/layout and share-recipient coverage, remaining editor tools, legacy visual parity and production-signed in-place upgrade are still release gates.
