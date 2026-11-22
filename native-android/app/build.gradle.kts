@@ -1,4 +1,5 @@
 import java.util.Base64
+import java.util.Properties
 
 plugins {
     id("com.android.application") version "8.13.2"
@@ -6,6 +7,12 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose") version "2.2.21"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.21"
     id("org.jetbrains.kotlin.kapt") version "2.2.21"
+}
+
+val releaseSigningPath = providers.environmentVariable("VPM_RELEASE_SIGNING_FILE").orNull
+val releaseSigningFile = releaseSigningPath?.let { rootProject.file(it) }
+val releaseSigningProperties = releaseSigningFile?.let { credentials ->
+    Properties().apply { credentials.inputStream().use { load(it) } }
 }
 
 android {
@@ -19,6 +26,17 @@ android {
         versionCode = 11
         versionName = "11.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    if (releaseSigningProperties != null && releaseSigningFile != null) {
+        fun signingValue(name: String): String = requireNotNull(releaseSigningProperties.getProperty(name)
+            ?.takeIf { it.isNotBlank() }) { "Missing release signing property: $name" }
+        val production = signingConfigs.create("production") {
+            storeFile = releaseSigningFile.parentFile.resolve(signingValue("storeFile"))
+            storePassword = signingValue("storePassword")
+            keyAlias = signingValue("keyAlias")
+            keyPassword = signingValue("keyPassword")
+        }
+        buildTypes.named("release") { signingConfig = production }
     }
     buildFeatures { compose = true }
     compileOptions {
