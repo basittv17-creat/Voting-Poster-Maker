@@ -126,6 +126,58 @@ class OfflinePosterTest {
         }
     }
 
+    @Test
+    fun brushErasesAndRestoresOriginalPixelsWithFeathering() {
+        val original = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888)
+        original.eraseColor(android.graphics.Color.RED)
+        val edited = requireNotNull(original.copy(Bitmap.Config.ARGB_8888, true))
+        try {
+            val brush = MaskBrush(original, edited)
+            brush.dab(32.5f, 32.5f, 20f, .5f, restore = false)
+            assertEquals(0, edited.getPixel(32, 32) ushr 24)
+            assertTrue(edited.getPixel(47, 32) ushr 24 in 1..254)
+            assertEquals(android.graphics.Color.RED, edited.getPixel(0, 0))
+            brush.dab(32.5f, 32.5f, 10f, .5f, restore = true)
+            assertEquals(android.graphics.Color.RED, edited.getPixel(32, 32))
+            assertEquals(android.graphics.Color.RED, original.getPixel(32, 32))
+            brush.stroke(53.5f, 10.5f, 10.5f, 10.5f, 4f, 0f, restore = false)
+            assertEquals(0, edited.getPixel(30, 10) ushr 24)
+        } finally {
+            original.recycle()
+            edited.recycle()
+        }
+    }
+
+    @Test
+    fun exportsLayeredPortraitAt3840Pixels() {
+        runBlocking {
+            val instrumentation = InstrumentationRegistry.getInstrumentation()
+            val context = instrumentation.targetContext
+            val store = ProjectStore(context)
+            val source = store.newAsset()
+            try {
+                instrumentation.context.assets.open("astronaut.jpg").use { input ->
+                    source.outputStream().use { input.copyTo(it) }
+                }
+                val document = templates(PosterMode.VOTING).first().create(PosterMode.VOTING)
+                val layered = document.copy(layers = document.layers.map { it.copy(asset = source.name) })
+                val exporter = PosterExport(context, PosterRenderer(context, store))
+                val file = exporter.render(layered, 3840, ExportFormat.PNG)
+                try {
+                    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    BitmapFactory.decodeFile(file.path, bounds)
+                    assertEquals(3840, bounds.outWidth)
+                    assertEquals(2880, bounds.outHeight)
+                    assertEquals("image/png", bounds.outMimeType)
+                } finally {
+                    file.delete()
+                }
+            } finally {
+                source.delete()
+            }
+        }
+    }
+
     private fun assertMask(bitmap: Bitmap) {
         try {
             val pixels = IntArray(bitmap.width * bitmap.height)

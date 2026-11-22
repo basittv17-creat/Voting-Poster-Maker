@@ -264,6 +264,8 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
     val selected = document.selected
     val activePreview = preview?.takeIf { it.documentId == document.id }
     var showOriginal by rememberSaveable(activePreview?.image) { mutableStateOf(false) }
+    var refine by remember(activePreview?.image) { mutableStateOf(false) }
+    if (refine && activePreview != null) MaskRefinementDialog(activePreview, vm) { refine = false }
     val displayed = if (activePreview == null) document else document.updateLayer(activePreview.layerId) {
         if (it.asset == activePreview.original) it.copy(cutout = if (showOriginal) null else activePreview.image) else it
     }
@@ -293,6 +295,7 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                         }
                     }
                     Tool("Cancel") { vm.cancelCutout() }
+                    if (activePreview != null) Tool("Refine edges") { refine = true }
                 }
             }
         }

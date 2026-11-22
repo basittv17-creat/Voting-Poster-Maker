@@ -1,6 +1,7 @@
 package com.awisogera.votingpostermaker
 
 import android.app.Application
+import android.graphics.Bitmap
 import android.graphics.Typeface
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
@@ -182,6 +183,24 @@ class EditorViewModel(app: Application) : AndroidViewModel(app) {
                 notice.value = "This device does not have enough memory to remove the background."
             } finally {
                 busy.value = false
+            }
+        }
+    }
+
+    internal suspend fun replaceCutoutPreview(preview: CutoutPreview, bitmap: Bitmap) {
+        check(cutout.value == preview)
+        val target = store.newAsset()
+        var retained = false
+        try {
+            withContext(Dispatchers.IO) {
+                target.outputStream().use { check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) }
+            }
+            check(cutout.value == preview)
+            cutout.value = preview.copy(image = target.name)
+            retained = true
+        } finally {
+            withContext(NonCancellable + Dispatchers.IO) {
+                if (retained) store.asset(preview.image).delete() else target.delete()
             }
         }
     }
