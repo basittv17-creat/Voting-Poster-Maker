@@ -56,6 +56,8 @@ jobs:
         if: steps.acceleration.outputs.available == 'true'
         with:
           packages: platform-tools
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.acceleration.outputs.available == 'true'
       - name: Enable Android emulator access
         if: steps.acceleration.outputs.available == 'true'
         run: sudo chmod a+rw /dev/kvm
@@ -73,7 +75,10 @@ jobs:
             adb shell svc wifi disable
             adb shell svc data disable
             ./gradlew :app:connectedDebugAndroidTest
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
             adb shell am start -W -n com.awisogera.votingpostermaker/.MainActivity
+            adb shell uiautomator dump /sdcard/voting-poster-home.xml
+            adb shell cat /sdcard/voting-poster-home.xml | grep -F "Single Poster Design"
             adb exec-out screencap -p > native-home.png
       - uses: actions/upload-artifact@v4
         if: steps.acceleration.outputs.available == 'true' && !cancelled()
