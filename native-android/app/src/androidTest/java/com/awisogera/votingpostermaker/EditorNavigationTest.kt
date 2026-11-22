@@ -137,7 +137,7 @@ class EditorNavigationTest {
             }
         }
         val visible = nodes().filter { it.isVisibleToUser }
-            .map { "${it.packageName}: ${it.text ?: it.contentDescription.orEmpty()}" }
+            .map { "${it.packageName}: ${(it.text ?: it.contentDescription)?.toString().orEmpty()}" }
             .distinct().take(25)
         error("Text not visible: $label. Visible nodes: $visible")
     }
