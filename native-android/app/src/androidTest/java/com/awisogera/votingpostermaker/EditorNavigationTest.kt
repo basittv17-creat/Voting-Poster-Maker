@@ -36,7 +36,7 @@ class EditorNavigationTest {
     }
 
     @Test
-    fun touchingPhotosSelectsOnlyTheIntendedLayer() {
+    fun touchingAndDraggingPhotosChangesOnlyTheIntendedLayer() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val store = ProjectStore(context)
@@ -58,23 +58,19 @@ class EditorNavigationTest {
             ActivityScenario.launch(MainActivity::class.java).use {
                 tap("My Designs")
                 tap(seeded.title)
+                var expected = seeded.layers
                 for (layer in seeded.layers) {
-                    val bounds = Rect()
-                    awaitNode("Poster canvas") { it.contentDescription?.toString() == "Poster canvas" }
-                        .getBoundsInScreen(bounds)
-                    val scale = minOf(bounds.width() / 1200f, bounds.height() / 900f)
-                    val x = bounds.exactCenterX() + (layer.x - 600f) * scale
-                    val y = bounds.exactCenterY() + (layer.y - 450f) * scale
-                    shell("input tap ${x.roundToInt()} ${y.roundToInt()}")
+                    val (x, y) = centerOnCanvas(layer)
+                    shell("input tap $x $y")
                     awaitText(layer.name)
-                    val saved = runBlocking {
-                        withTimeout(8_000) {
-                            store.projects.first { records ->
-                                records.any { it.id == seeded.id && store.read(it).selectedId == layer.id }
-                            }.first { it.id == seeded.id }.let(store::read)
-                        }
-                    }
-                    assertEquals(seeded.layers, saved.layers)
+                    val selected = persisted(store, seeded.id) { it.selectedId == layer.id }
+                    assertEquals(expected, selected.layers)
+
+                    val (startX, startY) = centerOnCanvas(layer)
+                    shell("input swipe $startX $startY ${startX + 32} $startY 400")
+                    val moved = persisted(store, seeded.id) { it.selectedId == layer.id && it.selected!!.x > layer.x }
+                    assertEquals(expected.filterNot { it.id == layer.id }, moved.layers.filterNot { it.id == layer.id })
+                    expected = moved.layers
                 }
             }
         } finally {
@@ -83,6 +79,24 @@ class EditorNavigationTest {
             original.delete()
         }
     }
+
+    private fun centerOnCanvas(layer: PosterLayer): Pair<Int, Int> {
+        val bounds = Rect()
+        awaitNode("Poster canvas") { it.contentDescription?.toString() == "Poster canvas" }.getBoundsInScreen(bounds)
+        val scale = minOf(bounds.width() / 1200f, bounds.height() / 900f)
+        val x = bounds.exactCenterX() + (layer.x - 600f) * scale
+        val y = bounds.exactCenterY() + (layer.y - 450f) * scale
+        return x.roundToInt() to y.roundToInt()
+    }
+
+    private fun persisted(store: ProjectStore, id: String, matches: (PosterDocument) -> Boolean): PosterDocument =
+        runBlocking {
+            withTimeout(8_000) {
+                store.projects.first { records ->
+                    records.any { it.id == id && matches(store.read(it)) }
+                }.first { it.id == id }.let(store::read)
+            }
+        }
 
     private fun nodes(): List<AccessibilityNodeInfo> = buildList {
         fun visit(node: AccessibilityNodeInfo) {

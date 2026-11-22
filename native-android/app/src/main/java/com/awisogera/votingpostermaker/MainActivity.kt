@@ -300,13 +300,18 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                 when (panel) {
                     "Selection" -> if (selected != null) LayerTools(selected, vm, ::pick) { panel = it }
                     "Layers" -> LayersPanel(document, vm) { panel = "Selection" }
-                    "Background", "Photo Background" -> {
-                        val photo = selected?.takeIf { it.kind == LayerKind.PHOTO && panel == "Photo Background" }
-                        BackgroundTools { bg ->
-                            if (photo == null) vm.edit { it.copy(background = bg) }
-                            else vm.layer(photo.id) { it.copy(backdrop = bg) }
+                    "Background" -> {
+                        BackgroundTools { bg -> vm.edit { it.copy(background = bg) } }
+                        Tool("Import background") { pick("global") }
+                    }
+                    "Photo Background" -> {
+                        val photo = selected?.takeIf { it.kind == LayerKind.PHOTO && !it.locked }
+                        if (photo == null) {
+                            Text("Select an unlocked photo to change its background.")
+                        } else {
+                            BackgroundTools { bg -> vm.layer(photo.id) { it.copy(backdrop = bg) } }
+                            Tool("Import background") { pick("background:${photo.id}") }
                         }
-                        Tool("Import background") { pick(photo?.let { "background:${it.id}" } ?: "global") }
                     }
                     "Elements" -> ElementTools(vm)
                     "VS Styles" -> VsTools(document, vm)
