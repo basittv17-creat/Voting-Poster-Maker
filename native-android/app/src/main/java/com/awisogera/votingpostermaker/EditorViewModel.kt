@@ -22,6 +22,11 @@ class EditorViewModel(app: Application) : AndroidViewModel(app) {
     val notice = MutableStateFlow<String?>(null)
     val busy = MutableStateFlow(false)
     val cutout = MutableStateFlow<CutoutPreview?>(null)
+    private val _clipboard = MutableStateFlow<PosterLayer?>(null)
+    val clipboard = _clipboard.asStateFlow()
+
+    fun copyLayer(layer: PosterLayer) { _clipboard.value = layer }
+    fun pasteLayer() { _clipboard.value?.let { add(it.duplicate()) } }
     private var cutoutJob: Job? = null
     private val history = ArrayDeque<PosterDocument>()
     private val future = ArrayDeque<PosterDocument>()

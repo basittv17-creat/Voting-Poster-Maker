@@ -16,6 +16,22 @@ class PosterDocumentTest {
         assertNotEquals(document.background, updated.layers[0].backdrop)
     }
 
+    @Test fun copiedPhotoRetainsEditsWithoutTakingTheOriginalSlot() {
+        val original = PosterLayer(
+            kind = LayerKind.PHOTO, name = "A photo", slot = "A",
+            asset = "portrait", cutout = "mask", rotation = 15f, x = 1195f, y = 895f,
+        )
+        val duplicate = original.duplicate()
+        assertNotEquals(original.id, duplicate.id)
+        assertNull(duplicate.slot)
+        assertEquals(original.asset, duplicate.asset)
+        assertEquals(original.cutout, duplicate.cutout)
+        assertEquals(original.rotation, duplicate.rotation, 0f)
+        assertEquals(1200f, duplicate.x, 0f)
+        assertEquals(900f, duplicate.y, 0f)
+        assertEquals("A", original.slot)
+    }
+
     @Test fun rotationAndTopmostOrderAffectHitTesting() {
         val base = PosterLayer(kind = LayerKind.TEXT, name = "Rotated", width = 300f, height = 80f, rotation = 90f)
         val top = base.copy(id = "top")

@@ -177,6 +177,7 @@ private fun ModeCard(mode: PosterMode, subtitle: String, color: Color, open: () 
 private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewModel, close: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val clipboard by vm.clipboard.collectAsStateWithLifecycle()
     val processing by vm.busy.collectAsStateWithLifecycle()
     val preview by vm.cutout.collectAsStateWithLifecycle()
     var panel by rememberSaveable(document.id) { mutableStateOf("") }
@@ -367,6 +368,10 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
         Tool("Layers") { panel = "Layers" }
         Tool("Canvas") { panel = "Canvas" }
         Tool("Import image") { pick("new") }
+        if (clipboard != null) Tool("Paste layer") {
+            vm.pasteLayer()
+            panel = "Selection"
+        }
     }
 }
 

@@ -58,6 +58,14 @@ data class PosterLayer(
     val warmth: Float = 0f,
     val vignette: Boolean = false,
 ) {
+    fun duplicate(): PosterLayer = copy(
+        id = UUID.randomUUID().toString(),
+        slot = null,
+        name = "$name copy",
+        x = (x + 30f).coerceAtMost(1200f),
+        y = (y + 30f).coerceAtMost(900f),
+    )
+
     fun contains(px: Float, py: Float): Boolean {
         val angle = Math.toRadians(-rotation.toDouble())
         val dx = px - x

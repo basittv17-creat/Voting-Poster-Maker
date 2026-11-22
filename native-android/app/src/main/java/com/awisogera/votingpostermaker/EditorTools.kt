@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import java.util.UUID
 import kotlin.math.roundToInt
 
 private val swatches = listOf(
@@ -117,8 +116,8 @@ fun LayerTools(layer: PosterLayer, vm: EditorViewModel, pick: (String) -> Unit, 
                     cropX = 0f, cropY = 0f, flipX = false, flipY = false)
             }
         }
-        Tool("Duplicate") { vm.add(layer.copy(id = UUID.randomUUID().toString(), slot = null,
-            name = "${layer.name} copy", x = layer.x + 30, y = layer.y + 30)) }
+        Tool("Duplicate") { vm.add(layer.duplicate()) }
+        Tool("Copy layer") { vm.copyLayer(layer) }
         Tool("Forward") { vm.reorder(layer.id, 1) }
         Tool("Backward") { vm.reorder(layer.id, -1) }
         Tool("Lock") { update { it.copy(locked = true) } }
