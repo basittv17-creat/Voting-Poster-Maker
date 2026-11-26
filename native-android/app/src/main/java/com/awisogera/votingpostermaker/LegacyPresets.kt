@@ -52,6 +52,25 @@ internal val legacyTextPresets = listOf(
 )
 
 
+/** HTML Text Style's seven dedicated outline swatches. */
+internal val legacyTextStrokeColors: List<Long> = listOf(
+    0xffffffff, 0xff000000, 0xffef4444, 0xfffacc15,
+    0xff22c55e, 0xff3b82f6, 0xffec4899,
+)
+
+/** Keep all legacy font labels. Android maps unavailable WebView family names
+ * to the closest platform typefaces; an imported font remains selectable. */
+internal val legacyTextFonts: List<Pair<String, String>> = listOf(
+    "Arial" to "sans-serif",
+    "Georgia" to "serif",
+    "Verdana" to "sans-serif",
+    "Tahoma" to "sans-serif",
+    "Courier New" to "monospace",
+    "Times New Roman" to "serif",
+    "Impact" to "sans-serif-condensed",
+    "Trebuchet MS" to "sans-serif",
+)
+
 /** The dedicated fifteen text-color swatches from main's Text Color toolbar. */
 internal val legacyTextColors: List<Long> = listOf(
     0xffffffff, 0xff000000, 0xffef4444, 0xfff97316, 0xfffacc15,
