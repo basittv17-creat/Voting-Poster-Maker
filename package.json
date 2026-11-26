@@ -5,7 +5,9 @@
   "description": "Voting Poster Maker Android wrapper for Capacitor",
   "scripts": {
     "android:sync": "cap sync android",
-    "android:open": "cap open android"
+    "android:open": "cap open android",
+    "capacitor:sync:before": "node scripts/prepare-arena-templates.cjs",
+    "capacitor:copy:before": "node scripts/prepare-arena-templates.cjs"
   },
   "dependencies": {
     "@capacitor/android": "6.2.1",
