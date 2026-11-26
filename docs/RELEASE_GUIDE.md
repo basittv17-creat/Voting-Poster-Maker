@@ -2,7 +2,7 @@
 
 `main` continues producing the existing Capacitor release. The independent native PR check builds a debug APK and runs document tests. Keep the migration in draft until legacy parity, device verification, and the signing upgrade have been exercised.
 
-The native application uses version code 11 and version name 11.0. Before cutover, compare version code with the latest Play build, configure the authorized release signing path, verify the production certificate lineage, and test a signed upgrade on-device. Verify the AAB signature before distribution. Keep signing configuration and material outside source control.
+The native application uses version code 12 and version name 12.0. Before cutover, compare version code with the latest Play build, configure the authorized release signing path, verify the production certificate lineage, and test a signed upgrade on-device. Verify the AAB signature before distribution. Keep signing configuration and material outside source control.
 
 ## Verify a native release candidate
 
@@ -15,3 +15,9 @@ The native application uses version code 11 and version name 11.0. Before cutove
 
 
 The historical Capacitor [signed release AAB artifact](https://github.com/basittv17-creat/Voting-Poster-Maker/actions/runs/39579485244/artifacts/12335498184) is available as an upload-signing reference. Production upgrade verification remains open. The release owner must configure `VPM_RELEASE_SIGNING_FILE` on the trusted release workstation and provide the actual installed production baseline to the upgrade test. Keep the signing files and passwords there and record only public certificate fingerprints and test results.
+
+
+## Preserve the current Google Play launcher icon (26 Nov 2026)
+The latest existing Capacitor `main` uses `android/app/src/main/res/drawable-nodpi/voting_poster_icon.webp` (blob `e4686325e1d2364e9bbc81c091e265bb674b4bfa`) as both `android:icon` and `android:roundIcon`. The native project copies this **exact blob** to `native-android/app/src/main/res/drawable-nodpi/voting_poster_icon.webp` and references it for both icon attributes. Do not replace it with the earlier stock mipmap resources or generated UI mockups.
+
+The latest installed release on `main` is versionCode **11** (versionName 10.1). Native was previously also 11; it is now **12**. This corrects the version ordering only. It does **not** verify production signing, app-upgrade compatibility, legacy data preservation, feature parity, or readiness to merge. The existing `www/index.html` still supplies legacy PNG frames during native builds; do **not** delete it or the Capacitor production build until those image assets are migrated to independent licensed assets and verified.

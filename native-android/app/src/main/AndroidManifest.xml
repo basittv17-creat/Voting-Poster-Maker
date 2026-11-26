@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
-    <application android:allowBackup="false" android:icon="@mipmap/ic_launcher"
+    <application android:allowBackup="false" android:icon="@drawable/voting_poster_icon" android:roundIcon="@drawable/voting_poster_icon"
         android:label="Voting Poster Maker" android:supportsRtl="true" android:theme="@style/Theme.Poster">
         <activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
             <intent-filter>
