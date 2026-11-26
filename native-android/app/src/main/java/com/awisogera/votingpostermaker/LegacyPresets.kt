@@ -52,6 +52,13 @@ internal val legacyTextPresets = listOf(
 )
 
 
+/** The dedicated fifteen text-color swatches from main's Text Color toolbar. */
+internal val legacyTextColors: List<Long> = listOf(
+    0xffffffff, 0xff000000, 0xffef4444, 0xfff97316, 0xfffacc15,
+    0xff22c55e, 0xff06b6d4, 0xff3b82f6, 0xff8b5cf6, 0xffec4899,
+    0xff7dd3fc, 0xffa3e635, 0xff78350f, 0xff64748b, 0xfffda4af,
+)
+
 /** Exact ten CSS 135-degree text background color pairs from the shipped HTML editor. */
 internal data class LegacyTextBackground(val title: String, val backdrop: Backdrop)
 
