@@ -69,6 +69,7 @@ internal val legacyTextFonts: List<Pair<String, String>> = listOf(
     "Times New Roman" to "serif",
     "Impact" to "sans-serif-condensed",
     "Trebuchet MS" to "sans-serif",
+    "Comic Sans MS" to "casual",
 )
 
 /** The dedicated fifteen text-color swatches from main's Text Color toolbar. */
