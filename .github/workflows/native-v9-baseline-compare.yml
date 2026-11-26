@@ -11,6 +11,10 @@ permissions:
 
 jobs:
   compare-installed-builds:
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [29, 35]
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -33,13 +37,14 @@ jobs:
             'Native version 12 APK: GitHub Actions 45818911552 (branch commit 3567e9f; production upload-signed)' \
             'The two builds are installed sequentially with an uninstall between them.' \
             'THIS DOES NOT PROVE an in-place upgrade or all-feature parity.' \
-            'The current PR HEAD may contain newer code than this pinned signed candidate.' > comparison/evidence/README.txt
+            'The current PR HEAD may contain newer code than this pinned signed candidate.' \
+            'The v9 WebView can be blank on certain emulator profiles: capture screenshots and WebView logs; never count a process-only launch as UI feature parity.' > comparison/evidence/README.txt
       - name: Enable Android emulator acceleration
         run: sudo chmod a+rw /dev/kvm
       - name: Install and launch both APKs on a real API 35 emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 35
+          api-level: ${{ matrix.api }}
           target: google_apis
           arch: x86_64
           script: |
@@ -48,12 +53,14 @@ jobs:
             echo '===== Historical v9 on fresh emulator ====='
             adb install comparison/old/app-debug.apk
             adb shell am start -W -n com.awisogera.votingpostermaker/.MainActivity
-            sleep 8
+            sleep 15
             adb shell pidof com.awisogera.votingpostermaker
             adb shell dumpsys package com.awisogera.votingpostermaker | grep -m 1 'versionCode=' > comparison/evidence/v9-version.txt
             grep -q 'versionCode=9' comparison/evidence/v9-version.txt
             adb exec-out screencap -p > comparison/evidence/v9-installed.png
             test -s comparison/evidence/v9-installed.png
+            adb logcat -d -v brief > comparison/evidence/v9-logcat.txt
+            adb shell dumpsys webviewupdate > comparison/evidence/v9-webview-provider.txt
             adb shell uiautomator dump /sdcard/v9-ui.xml
             adb pull /sdcard/v9-ui.xml comparison/evidence/v9-ui.xml
             echo '===== Kotlin signed candidate after clean uninstall ====='
@@ -73,6 +80,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: voting-poster-v9-vs-kotlin-installed-evidence
+          name: voting-poster-v9-vs-kotlin-api${{ matrix.api }}-evidence
           path: comparison/evidence
           if-no-files-found: warn
