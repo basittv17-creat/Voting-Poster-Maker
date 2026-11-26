@@ -96,8 +96,15 @@ fun LayerTools(layer: PosterLayer, vm: EditorViewModel, pick: (String) -> Unit, 
             legacyTextPresets.forEach { preset ->
                 Tool(preset.title) { update(preset::applyTo) }
             }
-            Tool("Clear text background") { update { it.copy(backdrop = Backdrop()) } }
         }
+        if (layer.kind == LayerKind.TEXT) {
+            Text("Text background")
+            BackgroundTools { backdrop -> update { it.copy(backdrop = backdrop) } }
+            Text("Outline color")
+            Swatches { color -> update { it.copy(strokeColor = color) } }
+        }
+        Text("Shadow color")
+        Swatches { color -> update { it.copy(shadowColor = color) } }
     }
     if (layer.kind in listOf(LayerKind.TEXT, LayerKind.SHAPE, LayerKind.VS)) {
         Text("Fill")

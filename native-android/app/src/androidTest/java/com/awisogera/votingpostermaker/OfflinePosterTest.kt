@@ -127,6 +127,35 @@ class OfflinePosterTest {
     }
 
     @Test
+    fun textBackdropAndOutlineRenderWithoutFillingCanvas() = runBlocking {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val renderer = PosterRenderer(context, ProjectStore(context))
+        val export = PosterExport(context, renderer)
+        val plate = 0xff101c46
+        val outline = 0xfffb7185
+        val layer = PosterLayer(
+            kind = LayerKind.TEXT, name = "Headline", text = "Vote",
+            backdrop = Backdrop(plate), stroke = 12f, strokeColor = outline,
+        )
+        val document = PosterDocument(PosterMode.SINGLE, background = Backdrop(), layers = listOf(layer))
+        val file = export.render(document, 1200, ExportFormat.PNG)
+        try {
+            val bitmap = requireNotNull(BitmapFactory.decodeFile(file.path))
+            try {
+                assertEquals(0, bitmap.getPixel(0, 0))
+                assertEquals(plate.toInt(), bitmap.getPixel(410, 360))
+                assertTrue("Custom outline is present", (390..520).any { y ->
+                    (480..720).any { x -> bitmap.getPixel(x, y) == outline.toInt() }
+                })
+            } finally {
+                bitmap.recycle()
+            }
+        } finally {
+            file.delete()
+        }
+    }
+
+    @Test
     fun brushErasesAndRestoresOriginalPixelsWithFeathering() {
         val original = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888)
         original.eraseColor(android.graphics.Color.RED)
