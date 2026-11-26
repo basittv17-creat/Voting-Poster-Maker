@@ -7,6 +7,16 @@ on:
       - 'native-android/**'
       - '.github/workflows/native-signed-candidate.yml'
   workflow_dispatch:
+  workflow_call:
+    secrets:
+      STORE_FILE_BASE64:
+        required: true
+      STORE_PASSWORD:
+        required: true
+      KEY_ALIAS:
+        required: true
+      KEY_PASSWORD:
+        required: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -86,7 +96,7 @@ jobs:
           grep -Fxq 'jar verified.' "$RUNNER_TEMP/vpm-aab-signature.txt"
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$apk"
           sha256sum "$aab" "$apk"
-      - name: Check v9 upload certificate, package identity and 16 KB APK alignment
+      - name: Check main and v9 upload certificates, package identity and 16 KB APK alignment
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -106,6 +116,19 @@ jobs:
             exit 1
           fi
           echo "Historical v9/Kotlin upload certificate match: $new_fp"
+          # Compare with the latest successful main release, not just historical v9.
+          main_run=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow build-android.yml --branch main --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          test -n "$main_run" && test "$main_run" != null
+          main_dir=$(mktemp -d "$RUNNER_TEMP/vpm-main-aab.XXXXXXXX")
+          gh run download "$main_run" --repo "$GITHUB_REPOSITORY" --name app-release-aab --dir "$main_dir"
+          main_fp=$(keytool -printcert -jarfile "$main_dir/app-release.aab" | awk -F 'SHA256: ' '/SHA256:/{print $2; exit}' | tr -d '\r')
+          apk_fp=$("$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$new_apk" | awk -F ': ' '/Signer #1 certificate SHA-256 digest:/{print $2; exit}' | tr '[:lower:]' '[:upper:]')
+          normalized_aab_fp=$(printf '%s' "$new_fp" | tr -d ':' | tr '[:lower:]' '[:upper:]')
+          if [[ -z "$main_fp" || "$main_fp" != "$new_fp" || "$apk_fp" != "$normalized_aab_fp" ]]; then
+            echo "::error::Main AAB, Kotlin AAB and Kotlin APK signing certificates must match."
+            exit 1
+          fi
+          echo "Main run $main_run and both native outputs use the same upload certificate."
           package_line=$("$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$new_apk" | grep -m1 '^package:')
           if [[ "$package_line" != *"name='com.awisogera.votingpostermaker'"* ]]; then
             echo "::error::Unexpected Kotlin application ID."
@@ -128,3 +151,15 @@ jobs:
           path: |
             native-android/app/build/outputs/bundle/release/app-release.aab
             native-android/app/build/outputs/apk/release/app-release.apk
+      - name: Upload Kotlin signed AAB separately
+        uses: actions/upload-artifact@v4
+        with:
+          name: voting-poster-maker-kotlin-signed-aab
+          if-no-files-found: error
+          path: native-android/app/build/outputs/bundle/release/app-release.aab
+      - name: Upload Kotlin signed APK separately
+        uses: actions/upload-artifact@v4
+        with:
+          name: voting-poster-maker-kotlin-signed-apk
+          if-no-files-found: error
+          path: native-android/app/build/outputs/apk/release/app-release.apk
