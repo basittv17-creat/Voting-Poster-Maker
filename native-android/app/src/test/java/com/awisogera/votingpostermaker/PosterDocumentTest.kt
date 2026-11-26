@@ -16,6 +16,26 @@ class PosterDocumentTest {
         assertNotEquals(document.background, updated.layers[0].backdrop)
     }
 
+    @Test fun legacyPhotoResetRecentersOnlyItsOriginalABSlot() {
+        for (template in templates(PosterMode.VOTING).take(3)) {
+            val initial = template.create(PosterMode.VOTING)
+            val a = initial.layers.first { it.slot == "A" }
+            val b = initial.layers.first { it.slot == "B" }
+            val moved = initial.updateLayer(a.id) {
+                it.copy(x = 555f, y = 700f, scale = 2f, rotation = 45f,
+                    flipX = true, cropZoom = 2f, asset = "a-photo")
+            }
+            val reset = moved.resetPhotoToSlot(a.id)
+            val resetA = reset.layers.first { it.id == a.id }
+            assertEquals(b, reset.layers.first { it.id == b.id })
+            assertEquals(a.x, resetA.x, 0f)
+            assertEquals(a.y, resetA.y, 0f)
+            assertEquals(1f, resetA.scale, 0f)
+            assertEquals(0f, resetA.rotation, 0f)
+            assertEquals("a-photo", resetA.asset)
+        }
+    }
+
     @Test fun quickPhotoFlipAndResetAreReversibleWithoutChangingTheOtherSlot() {
         val initial = templates(PosterMode.VOTING).first().create(PosterMode.VOTING)
         val (a, b) = initial.layers
