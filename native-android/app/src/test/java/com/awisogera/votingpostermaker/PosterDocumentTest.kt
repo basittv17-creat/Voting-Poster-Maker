@@ -46,7 +46,7 @@ class PosterDocumentTest {
     @Test fun originalFontNamesAndStrokePaletteHaveTheirOwnControls() {
         assertEquals(
             listOf("Arial", "Georgia", "Verdana", "Tahoma", "Courier New",
-                "Times New Roman", "Impact", "Trebuchet MS"),
+                "Times New Roman", "Impact", "Trebuchet MS", "Comic Sans MS"),
             legacyTextFonts.map { it.first },
         )
         assertTrue(legacyTextFonts.all { it.second.isNotBlank() })
