@@ -16,6 +16,31 @@ class PosterDocumentTest {
         assertNotEquals(document.background, updated.layers[0].backdrop)
     }
 
+    @Test fun quickPhotoFlipAndResetAreReversibleWithoutChangingTheOtherSlot() {
+        val initial = templates(PosterMode.VOTING).first().create(PosterMode.VOTING)
+        val (a, b) = initial.layers
+        val changed = initial.updateLayer(a.id) {
+            it.copy(flipX = true, flipY = true, cropZoom = 2.5f,
+                cropX = .4f, cropY = -.2f, rotation = 90f, scale = 1.6f)
+        }
+        assertEquals(b, changed.layers[1])
+        val restored = changed.updateLayer(a.id) { it.resetPhotoTransform() }
+        val fixed = restored.layers.first { it.id == a.id }
+        assertEquals(b, restored.layers[1])
+        assertEquals(a, fixed)
+    }
+
+    @Test fun extraOfflineTemplatesKeepExistingLegacyTemplates() {
+        val voting = templates(PosterMode.VOTING)
+        assertTrue(voting.any { it.name == "Green & Gold" && it.frame == "green_gold" })
+        assertTrue(voting.any { it.name == "Tagda Muqabla #1" && it.frame == "tagda_muqabla" })
+        assertTrue(voting.any { it.name == "Teal Community Vote" })
+        assertTrue(voting.any { it.name == "Copper vs Navy" })
+        assertTrue(templates(PosterMode.SINGLE).any { it.name == "Emerald Event" })
+        val vote = voting.first { it.name == "Teal Community Vote" }.create(PosterMode.VOTING)
+        assertEquals(listOf("A", "B"), vote.layers.filter { it.kind == LayerKind.PHOTO }.map { it.slot })
+    }
+
     @Test fun copiedPhotoRetainsEditsWithoutTakingTheOriginalSlot() {
         val original = PosterLayer(
             kind = LayerKind.PHOTO, name = "A photo", slot = "A",
