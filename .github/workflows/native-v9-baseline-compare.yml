@@ -1,9 +1,13 @@
 name: Native vs released v9 baseline
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/native-v9-baseline-compare.yml'
+  push:
+    branches: [feature/native-kotlin-compose-rebuild]
+    paths: [.github/workflows/native-v9-baseline-compare.yml]
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
