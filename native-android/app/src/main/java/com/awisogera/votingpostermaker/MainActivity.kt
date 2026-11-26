@@ -1,6 +1,7 @@
 package com.awisogera.votingpostermaker
 
 import android.content.ClipData
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -245,7 +246,7 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
         else picker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
     }
 
-    fun export(share: Boolean) {
+    fun export(share: Boolean, preferredPackage: String? = null) {
         if (exporting) return
         exporting = true
         scope.launch {
@@ -260,7 +261,25 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                             clipData = ClipData.newUri(context.contentResolver, file.name, uri)
                             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                         }
-                        context.startActivity(Intent.createChooser(intent, "Share poster"))
+                        if (preferredPackage == null) {
+                            context.startActivity(Intent.createChooser(intent, "Share poster"))
+                        } else {
+                            // Match the legacy WhatsApp/Facebook actions, attaching the real PNG/JPEG.
+                            // Not every phone has those apps; let the user choose another recipient.
+                            try {
+                                context.startActivity(Intent(intent).setPackage(preferredPackage))
+                            } catch (_: ActivityNotFoundException) {
+                                try {
+                                    if (preferredPackage == "com.whatsapp") {
+                                        context.startActivity(Intent(intent).setPackage("com.whatsapp.w4b"))
+                                    } else {
+                                        context.startActivity(Intent.createChooser(intent, "Share poster"))
+                                    }
+                                } catch (_: ActivityNotFoundException) {
+                                    context.startActivity(Intent.createChooser(intent, "Share poster"))
+                                }
+                            }
+                        }
                     }
                     Build.VERSION.SDK_INT >= 29 -> {
                         vm.exporter.saveToGallery(file, format)
@@ -396,7 +415,9 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                                 }
                                 ToolRow {
                                     Button(onClick = { export(false) }, enabled = !exporting) { Text("Save") }
-                                    OutlinedButton(onClick = { export(true) }, enabled = !exporting) { Text("Share") }
+                                    OutlinedButton(onClick = { export(true, "com.whatsapp") }, enabled = !exporting) { Text("WhatsApp") }
+                                    OutlinedButton(onClick = { export(true, "com.facebook.katana") }, enabled = !exporting) { Text("Facebook") }
+                                    OutlinedButton(onClick = { export(true) }, enabled = !exporting) { Text("Share others") }
                                 }
                                 if (exporting) LinearProgressIndicator(Modifier.fillMaxWidth())
                             }
@@ -434,7 +455,7 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                         Tool("Flip V") { openPanel(""); vm.layer(photo.id) { it.copy(flipY = !it.flipY) } }
                         Tool("Reset photo") {
                             openPanel("")
-                            vm.layer(photo.id) { it.resetPhotoTransform() }
+                            vm.edit { it.resetPhotoToSlot(photo.id) }
                         }
                         Tool("Adjust") { openPanel("Adjust") }
                         Tool("Undo") { dismissPanel(); vm.undo() }
