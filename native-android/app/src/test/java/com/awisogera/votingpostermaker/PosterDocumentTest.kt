@@ -43,6 +43,18 @@ class PosterDocumentTest {
         assertEquals(plain, plain.switchVotingFrame(null))
     }
 
+    @Test fun originalFontNamesAndStrokePaletteHaveTheirOwnControls() {
+        assertEquals(
+            listOf("Arial", "Georgia", "Verdana", "Tahoma", "Courier New",
+                "Times New Roman", "Impact", "Trebuchet MS"),
+            legacyTextFonts.map { it.first },
+        )
+        assertTrue(legacyTextFonts.all { it.second.isNotBlank() })
+        assertEquals(listOf(0xffffffff, 0xff000000, 0xffef4444, 0xfffacc15,
+            0xff22c55e, 0xff3b82f6, 0xffec4899), legacyTextStrokeColors)
+        assertEquals(7, legacyTextStrokeColors.distinct().size)
+    }
+
     @Test fun allOriginalTextColorsAreAvailable() {
         assertEquals(15, legacyTextColors.size)
         assertEquals(0xffffffff, legacyTextColors.first())
