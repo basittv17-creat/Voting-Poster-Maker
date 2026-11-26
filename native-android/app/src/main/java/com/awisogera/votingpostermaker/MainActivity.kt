@@ -410,8 +410,14 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
         Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).semantics { contentDescription = "Editor tools" },
             verticalAlignment = Alignment.CenterVertically) {
             if (photo != null) {
-                TextButton(onClick = ::editorBack, modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp),
-                    contentPadding = PaddingValues(horizontal = 6.dp)) { Text("Back", maxLines = 1) }
+                // Keep the selected-photo Back affordance at a stable, accessible width
+                // when the inline cutout panel opens or the tool list changes.
+                TextButton(
+                    onClick = ::editorBack,
+                    modifier = Modifier.width(72.dp).heightIn(min = 48.dp)
+                        .semantics { contentDescription = "Photo toolbar Back" },
+                    contentPadding = PaddingValues(horizontal = 6.dp),
+                ) { Text("Back", maxLines = 1) }
                 key(photo.id) {
                     ToolRow {
                         Tool(if (photo.asset == null) "Add photo" else "Replace photo") {
@@ -424,6 +430,15 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                         Tool("Backgrounds") { openPanel("Photo Background") }
                         Tool("Crop") { openPanel("Crop") }
                         Tool("Rotate") { openPanel(""); vm.layer(photo.id) { it.copy(rotation = (it.rotation + 90f) % 360f) } }
+                        Tool("Flip H") { openPanel(""); vm.layer(photo.id) { it.copy(flipX = !it.flipX) } }
+                        Tool("Flip V") { openPanel(""); vm.layer(photo.id) { it.copy(flipY = !it.flipY) } }
+                        Tool("Reset photo") {
+                            openPanel("")
+                            vm.layer(photo.id) {
+                                it.copy(rotation = 0f, scale = 1f, cropX = 0f, cropY = 0f,
+                                    cropZoom = 1f, flipX = false, flipY = false)
+                            }
+                        }
                         Tool("Adjust") { openPanel("Adjust") }
                         Tool("Undo") { dismissPanel(); vm.undo() }
                         Tool("Redo") { dismissPanel(); vm.redo() }
