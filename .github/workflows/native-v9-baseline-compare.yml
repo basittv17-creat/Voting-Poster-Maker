@@ -76,7 +76,18 @@ jobs:
             test -s comparison/evidence/native-installed.png
             adb shell uiautomator dump /sdcard/native-ui.xml
             adb pull /sdcard/native-ui.xml comparison/evidence/native-ui.xml
-            grep -q 'Voting Poster' comparison/evidence/native-ui.xml
+            # Some busy GitHub emulator hosts show an Android system ANR for Pixel Launcher,
+            # even though the app itself launched. Dismiss only THAT system dialog and
+            # relaunch the app; never silently declare the app's UI successful.
+            if grep -q "Pixel Launcher isn.t responding" comparison/evidence/native-ui.xml; then
+              adb shell input tap 160 330
+              adb shell am start -W -n com.awisogera.votingpostermaker/.MainActivity
+              sleep 4
+              adb shell uiautomator dump /sdcard/native-ui.xml
+              adb pull /sdcard/native-ui.xml comparison/evidence/native-ui.xml
+              adb exec-out screencap -p > comparison/evidence/native-installed.png
+            fi
+            grep -q 'Voting Poster Maker' comparison/evidence/native-ui.xml
             grep -q 'Single Poster Design' comparison/evidence/native-ui.xml
       - uses: actions/upload-artifact@v4
         if: always()
