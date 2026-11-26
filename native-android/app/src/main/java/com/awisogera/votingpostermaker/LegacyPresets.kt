@@ -52,6 +52,22 @@ internal val legacyTextPresets = listOf(
 )
 
 
+/** Exact ten CSS 135-degree text background color pairs from the shipped HTML editor. */
+internal data class LegacyTextBackground(val title: String, val backdrop: Backdrop)
+
+internal val legacyTextBackgrounds = listOf(
+    LegacyTextBackground("Style 1", Backdrop(0xffff416c, 0xffff4b2b)),
+    LegacyTextBackground("Style 2", Backdrop(0xff141e30, 0xff243b55)),
+    LegacyTextBackground("Style 3", Backdrop(0xff11998e, 0xff38ef7d)),
+    LegacyTextBackground("Style 4", Backdrop(0xff7f00ff, 0xffe100ff)),
+    LegacyTextBackground("Style 5", Backdrop(0xfff7971e, 0xffffd200)),
+    LegacyTextBackground("Style 6", Backdrop(0xff232526, 0xff414345)),
+    LegacyTextBackground("Style 7", Backdrop(0xffee0979, 0xffff6a00)),
+    LegacyTextBackground("Style 8", Backdrop(0xff396afc, 0xff2948ff)),
+    LegacyTextBackground("Style 9", Backdrop(0xff42275a, 0xff734b6d)),
+    LegacyTextBackground("Style 10", Backdrop(0xffc31432, 0xff240b36)),
+)
+
 internal fun legacyGlyph(glyph: String, sticker: Boolean): PosterLayer {
     val size = if (sticker) 230f else 72f
     return PosterLayer(
