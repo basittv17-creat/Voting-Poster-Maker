@@ -47,3 +47,7 @@ CI covers layered 3840 × 2880 PNG output, mask pixels, the compare/refine/apply
 
 ## 26 Nov 2026 preparatory cutover correction (NOT released)
 `main` changed after the native PR began: it now ships the owner's desired `voting_poster_icon.webp` launcher asset and has versionCode 11. The native branch now reuses the exact **current main icon blob** as native `@drawable/voting_poster_icon`/`roundIcon` and increments native versionCode to **12**. These are preparatory source corrections, not proof of signed upgrade or old-app parity. Both outstanding migration checks remain blocking: compare all legacy functions, test real signed in-place upgrade with the authorized certificate and test all intended supported Android versions. Preserve existing production `main` and do not delete `www/index.html` until its build-time frame extraction dependency is replaced. **Never modify Voting-Pro**.
+
+
+## 26 Nov 2026 legacy-source decoupling (PR only)
+The native Gradle build no longer depends on the 4.3 MB HTML source to extract voting-frame PNGs. Two used legacy frames and the unused third frame are preserved as native `assets/frames/*.png`. This permits a future native-only `main` release without shipping a WebView or relying on legacy JavaScript. The **existing installed Capacitor app and current main release remain unchanged** pending signed upgrade, verified app parity, real-device QA, and native release workflow cutover. Icon `voting_poster_icon.webp` remains identical to the current owner's icon on main; native versionCode is 12 vs main 11.

@@ -1,4 +1,3 @@
-import java.util.Base64
 import java.util.Properties
 
 plugins {
@@ -66,21 +65,5 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
 }
 
-// Keep the source bitmaps in the existing legacy archive and package exact PNG copies.
-val legacyHtml = rootProject.layout.projectDirectory.file("../www/index.html")
-val extractedFrames = layout.buildDirectory.dir("generated/legacyFrames")
-val extractLegacyFrames = tasks.register("extractLegacyFrames") {
-    inputs.file(legacyHtml)
-    outputs.dir(extractedFrames)
-    doLast {
-        val source = legacyHtml.asFile.readText()
-        val frames = extractedFrames.get().dir("frames").asFile.apply { mkdirs() }
-        mapOf("ornateFrame" to "green_gold", "tagdaFrame1" to "tagda_muqabla").forEach { (variable, name) ->
-            val data = requireNotNull(Regex(variable + "[.]src='data:image/png;base64,([A-Za-z0-9+/=]+)'")
-                .find(source)) { "Missing legacy frame: $name" }.groupValues[1]
-            frames.resolve("$name.png").writeBytes(Base64.getDecoder().decode(data))
-        }
-    }
-}
-android.sourceSets["main"].assets.srcDir(extractedFrames)
-tasks.named("preBuild").configure { dependsOn(extractLegacyFrames) }
+// Exact legacy voting-frame PNGs are now committed under app/src/main/assets/frames/.
+// The native Android build intentionally has no build-time dependency on www/index.html.
