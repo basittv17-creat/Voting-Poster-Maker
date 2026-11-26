@@ -434,10 +434,7 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                         Tool("Flip V") { openPanel(""); vm.layer(photo.id) { it.copy(flipY = !it.flipY) } }
                         Tool("Reset photo") {
                             openPanel("")
-                            vm.layer(photo.id) {
-                                it.copy(rotation = 0f, scale = 1f, cropX = 0f, cropY = 0f,
-                                    cropZoom = 1f, flipX = false, flipY = false)
-                            }
+                            vm.layer(photo.id) { it.resetPhotoTransform() }
                         }
                         Tool("Adjust") { openPanel("Adjust") }
                         Tool("Undo") { dismissPanel(); vm.undo() }
