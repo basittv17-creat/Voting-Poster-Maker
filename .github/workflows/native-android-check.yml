@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   verify:
@@ -90,3 +91,68 @@ jobs:
             native-android/navigation-failure.png
             native-android/failure-activities.txt
             native-android/failure-logcat.txt
+
+  legacy-v9-installation:
+    # Independent of Gradle: compare pinned historical and native release candidate APKs
+    # even if an external Maven repository temporarily rate-limits the build.
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch version 9 APK and native version 12 signed candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p v9-comparison/old v9-comparison/native v9-comparison/evidence
+          gh run download 39577948457 --repo "$GITHUB_REPOSITORY" -n app-debug-apk -D v9-comparison/old
+          gh run download 45818911552 --repo "$GITHUB_REPOSITORY" -n voting-poster-maker-native-signed-candidate -D v9-comparison/native
+          test -s v9-comparison/old/app-debug.apk
+          test -s v9-comparison/native/apk/release/app-release.apk
+          sha256sum v9-comparison/old/app-debug.apk v9-comparison/native/apk/release/app-release.apk > v9-comparison/evidence/apk-checksums.txt
+          printf '%s\n' \
+            'Old: v9 debug APK from historical main run 39577948457.' \
+            'New: v12 signed release candidate from Kotlin commit 3567e9f, run 45818911552.' \
+            'App binaries are installed separately, uninstalling between them.' \
+            'This is a baseline launch comparison, NOT an in-place signed upgrade test.' \
+            'This pinned v12 candidate may not contain the latest PR source.' > v9-comparison/evidence/scope.txt
+      - name: Enable Android emulator access
+        run: sudo chmod a+rw /dev/kvm
+      - name: Launch version 9 and Kotlin v12 separately on API 35
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          script: |
+            set -e
+            adb install v9-comparison/old/app-debug.apk
+            adb shell am start -W -n com.awisogera.votingpostermaker/.MainActivity
+            sleep 8
+            adb shell pidof com.awisogera.votingpostermaker
+            adb shell dumpsys package com.awisogera.votingpostermaker | grep -m 1 'versionCode=' > v9-comparison/evidence/old-package.txt
+            grep -q 'versionCode=9' v9-comparison/evidence/old-package.txt
+            adb exec-out screencap -p > v9-comparison/evidence/v9-installed.png
+            test -s v9-comparison/evidence/v9-installed.png
+            adb shell uiautomator dump /sdcard/old-ui.xml
+            adb pull /sdcard/old-ui.xml v9-comparison/evidence/old-ui.xml
+            adb uninstall com.awisogera.votingpostermaker
+            adb install v9-comparison/native/apk/release/app-release.apk
+            adb shell am start -W -n com.awisogera.votingpostermaker/.MainActivity
+            sleep 8
+            adb shell pidof com.awisogera.votingpostermaker
+            adb shell dumpsys package com.awisogera.votingpostermaker | grep -m 1 'versionCode=' > v9-comparison/evidence/native-package.txt
+            grep -q 'versionCode=12' v9-comparison/evidence/native-package.txt
+            adb exec-out screencap -p > v9-comparison/evidence/native-installed.png
+            test -s v9-comparison/evidence/native-installed.png
+            adb shell uiautomator dump /sdcard/native-ui.xml
+            adb pull /sdcard/native-ui.xml v9-comparison/evidence/native-ui.xml
+            grep -q 'Voting Poster' v9-comparison/evidence/native-ui.xml
+            grep -q 'Single Poster Design' v9-comparison/evidence/native-ui.xml
+      - name: Save actual installed screenshots and UI evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: v9-vs-kotlin-installed-evidence
+          path: v9-comparison/evidence
+          if-no-files-found: warn
