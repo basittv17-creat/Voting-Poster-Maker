@@ -54,15 +54,18 @@ jobs:
             adb install comparison/old/app-debug.apk
             adb shell am start -W -n com.awisogera.votingpostermaker/.MainActivity
             sleep 15
-            adb shell pidof com.awisogera.votingpostermaker
+            if ! adb shell pidof com.awisogera.votingpostermaker > comparison/evidence/v9-pid.txt; then
+              echo 'WARNING: v9 process exited before UI capture; still collecting diagnostic evidence.' > comparison/evidence/v9-launch-status.txt
+            fi
             adb shell dumpsys package com.awisogera.votingpostermaker | grep -m 1 'versionCode=' > comparison/evidence/v9-version.txt
             grep -q 'versionCode=9' comparison/evidence/v9-version.txt
             adb exec-out screencap -p > comparison/evidence/v9-installed.png
             test -s comparison/evidence/v9-installed.png
             adb logcat -d -v brief > comparison/evidence/v9-logcat.txt
-            adb shell dumpsys webviewupdate > comparison/evidence/v9-webview-provider.txt
-            adb shell uiautomator dump /sdcard/v9-ui.xml
-            adb pull /sdcard/v9-ui.xml comparison/evidence/v9-ui.xml
+            adb shell dumpsys webviewupdate > comparison/evidence/v9-webview-provider.txt || true
+            adb shell dumpsys activity activities > comparison/evidence/v9-activities.txt || true
+            adb shell uiautomator dump /sdcard/v9-ui.xml || true
+            adb pull /sdcard/v9-ui.xml comparison/evidence/v9-ui.xml || true
             echo '===== Kotlin signed candidate after clean uninstall ====='
             adb uninstall com.awisogera.votingpostermaker
             adb install comparison/native/apk/release/app-release.apk
