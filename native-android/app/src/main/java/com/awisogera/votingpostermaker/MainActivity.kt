@@ -26,6 +26,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -191,8 +196,29 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
     var viewportPan by remember(document.id) { mutableStateOf(Offset.Zero) }
     var moveCanvas by rememberSaveable(document.id) { mutableStateOf(false) }
     var showGrid by rememberSaveable(document.id) { mutableStateOf(false) }
-    BackHandler(processing || preview != null || panel.isNotEmpty()) {
-        if (processing || preview != null) vm.cancelCutout() else panel = ""
+    val selected = document.selected
+    val photo = selected?.takeIf { it.kind == LayerKind.PHOTO && it.visible && !it.locked }
+    val activePreview = preview?.takeIf { it.documentId == document.id && it.layerId == photo?.id }
+    var refine by remember(document.id, photo?.id) { mutableStateOf(false) }
+    var showOriginal by remember(activePreview?.image) { mutableStateOf(false) }
+    var checkerboard by remember(activePreview?.image) { mutableStateOf(true) }
+    fun dismissPanel() {
+        if (panel == "Remove BG") vm.cancelCutout()
+        refine = false
+        panel = ""
+    }
+    fun editorBack() {
+        when {
+            refine -> refine = false
+            panel.isNotEmpty() -> dismissPanel()
+            selected != null -> vm.select(null)
+        }
+    }
+    BackHandler(panel.isNotEmpty() || selected != null, onBack = ::editorBack)
+    fun openPanel(name: String) {
+        if (panel == "Remove BG" && name != panel) vm.cancelCutout()
+        refine = false
+        panel = name
     }
     val picker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) {
         if (it != null) vm.import(it, pickTarget, pickDocument)
@@ -261,126 +287,174 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
         }
     }
 
-    val selected = document.selected
-    val activePreview = preview?.takeIf { it.documentId == document.id }
-    var showOriginal by rememberSaveable(activePreview?.image) { mutableStateOf(false) }
-    var refine by remember(activePreview?.image) { mutableStateOf(false) }
-    if (refine && activePreview != null) MaskRefinementDialog(activePreview, vm) { refine = false }
-    val displayed = if (activePreview == null) document else document.updateLayer(activePreview.layerId) {
+    val displayed = if (activePreview?.temporary != true) document else document.updateLayer(activePreview.layerId) {
         if (it.asset == activePreview.original) it.copy(cutout = if (showOriginal) null else activePreview.image) else it
     }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         TextButton(onClick = close) { Text("Home") }
-        Text(document.title, Modifier.weight(1f), maxLines = 1)
-        TextButton(onClick = { panel = "Export" }) { Text("Export") }
+        Text(photo?.name ?: document.title, Modifier.weight(1f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+        TextButton(onClick = { openPanel("Export") }) { Text("Export") }
     }
-    PosterCanvas(displayed, vm.renderer, Modifier.weight(1f).fillMaxWidth(), vm,
-        zoom = viewportZoom, pan = viewportPan, moveCanvas = moveCanvas, showGrid = showGrid,
-        onViewport = { zoom, pan -> viewportZoom = zoom; viewportPan = pan },
-    ) { layer, tapped ->
-        if (layer != null) {
-            panel = "Selection"
-            if (tapped && layer.kind == LayerKind.PHOTO && layer.asset == null) pick(layer.id)
-        } else if (tapped) panel = ""
-    }
-    if (processing || activePreview != null) {
-        Surface(color = panelColor, shape = RoundedCornerShape(18.dp)) {
-            Column(Modifier.fillMaxWidth().padding(12.dp)) {
-                Text(if (processing) "Removing background on this device…" else "Preview background removal")
-                ToolRow {
-                    if (activePreview != null) {
-                        Tool("Apply") { vm.applyCutout() }
-                        Tool("Refine edges") { refine = true }
-                    }
-                    Tool("Cancel") { vm.cancelCutout() }
-                }
-                if (activePreview != null) TextButton(onClick = { showOriginal = !showOriginal }) {
-                    Text(if (showOriginal) "Show cutout" else "Show original")
-                }
+    BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
+        val panelHeight = (maxHeight * .55f).coerceAtMost(300.dp)
+        Column(Modifier.fillMaxSize()) {
+            PosterCanvas(displayed, vm.renderer, Modifier.weight(1f).fillMaxWidth(),
+                vm = vm, inputEnabled = panel != "Remove BG",
+                checkerboardLayer = activePreview?.takeIf { it.temporary && !showOriginal && checkerboard }?.layerId,
+                zoom = viewportZoom, pan = viewportPan, moveCanvas = moveCanvas, showGrid = showGrid,
+                onViewport = { zoom, pan -> viewportZoom = zoom; viewportPan = pan },
+            ) { layer, tapped ->
+                val contextualPhoto = layer?.kind == LayerKind.PHOTO
+                if (layer != null) {
+                    panel = if (contextualPhoto) "" else "Selection"
+                    if (tapped && contextualPhoto && layer.asset == null) pick(layer.id)
+                } else if (tapped) panel = ""
             }
-        }
-    } else if (panel.isNotEmpty()) {
-        Surface(color = panelColor, shape = RoundedCornerShape(18.dp)) {
-            Column(Modifier.fillMaxWidth().heightIn(max = 215.dp).verticalScroll(rememberScrollState()).padding(10.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(if (panel == "Selection") selected?.name ?: "Selection" else panel, Modifier.weight(1f),
-                        style = MaterialTheme.typography.titleMedium)
-                    TextButton(onClick = { panel = "" }) { Text("Close") }
-                }
-                when (panel) {
-                    "Selection" -> if (selected != null) LayerTools(selected, vm, ::pick) { panel = it }
-                    "Layers" -> LayersPanel(document, vm) { panel = "Selection" }
-                    "Background" -> {
-                        BackgroundTools { bg -> vm.edit { it.copy(background = bg) } }
-                        Tool("Import background") { pick("global") }
-                    }
-                    "Photo Background" -> {
-                        val photo = selected?.takeIf { it.kind == LayerKind.PHOTO && !it.locked }
-                        if (photo == null) {
-                            Text("Select an unlocked photo to change its background.")
-                        } else {
-                            BackgroundTools { bg -> vm.layer(photo.id) { it.copy(backdrop = bg) } }
-                            Tool("Import background") { pick("background:${photo.id}") }
+            if (panel.isNotEmpty()) key(panel, selected?.id, refine) {
+                Surface(color = panelColor, shape = RoundedCornerShape(18.dp)) {
+                    Column(Modifier.fillMaxWidth().heightIn(max = panelHeight)
+                        .semantics { contentDescription = "Editor panel" }.verticalScroll(rememberScrollState()).padding(10.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(if (panel == "Selection") selected?.name ?: "Selection" else panel, Modifier.weight(1f),
+                                style = MaterialTheme.typography.titleMedium)
+                            TextButton(onClick = ::dismissPanel) { Text("Close") }
                         }
-                    }
-                    "Elements" -> ElementTools(vm)
-                    "VS Styles" -> VsTools(document, vm)
-                    "Canvas" -> {
-                        ToolRow {
-                            Tool(if (moveCanvas) "Edit layers" else "Pan / pinch canvas") { moveCanvas = !moveCanvas }
-                            Tool("Zoom in") { viewportZoom = (viewportZoom + .25f).coerceAtMost(4f) }
-                            Tool("Zoom out") {
-                                viewportZoom = (viewportZoom - .25f).coerceAtLeast(1f)
-                                if (viewportZoom == 1f) viewportPan = Offset.Zero
+                        when (panel) {
+                            "Remove BG" -> if (photo != null) {
+                                when {
+                                    processing -> {
+                                        LinearProgressIndicator(Modifier.fillMaxWidth())
+                                        Text("Removing background on this device…")
+                                        Tool("Cancel", ::dismissPanel)
+                                    }
+                                    refine && activePreview != null -> MaskRefinementPanel(activePreview, vm) { refine = false }
+                                    activePreview != null && activePreview.temporary -> {
+                                        Text("Preview background removal")
+                                        ToolRow {
+                                            Tool("Apply") { vm.applyCutout(); panel = "" }
+                                            Tool("Cancel", ::dismissPanel)
+                                            Tool("Refine edges") { refine = true }
+                                        }
+                                        ToolRow {
+                                        Tool(if (showOriginal) "Show cutout" else "Show original") { showOriginal = !showOriginal }
+                                        if (!showOriginal) Tool(if (checkerboard) "On poster" else "Checkerboard") { checkerboard = !checkerboard }
+                                    }
+                                    }
+                                    else -> {
+                                        ToolRow {
+                                            Tool("Auto remove") { vm.segment(photo) }
+                                            Tool("Refine edges") { vm.startManualMask(photo); refine = true }
+                                        }
+                                        if (photo.cutout != null) Tool("Restore original") {
+                                            vm.layer(photo.id) { it.copy(cutout = null) }
+                                            dismissPanel()
+                                        }
+                                    }
+                                }
                             }
-                            Tool("Reset view") { viewportZoom = 1f; viewportPan = Offset.Zero; moveCanvas = false }
-                            Tool(if (showGrid) "Hide grid" else "Show grid") { showGrid = !showGrid }
-                        }
-                        CanvasTools(document, vm)
-                    }
-                    "Export" -> {
-                        ToolRow {
-                            ExportFormat.entries.forEach { option -> FilterChip(format == option, { format = option }, { Text(option.name) }) }
-                        }
-                        ToolRow {
-                            FilterChip(edge == 0, { edge = 0 }, { Text("Canvas size") })
-                            listOf(1280, 1920, 3840).forEach { size ->
-                                FilterChip(edge == size, { edge = size }, { Text("${size}px") })
+                            "Crop" -> if (photo != null) CropTools(photo, vm)
+                            "Adjust" -> if (photo != null) PhotoAdjustments(photo, vm)
+                            "Selection" -> if (selected != null) LayerTools(selected, vm, ::pick) { panel = it }
+                            "Layers" -> LayersPanel(document, vm) { panel = "Selection" }
+                            "Background" -> {
+                                BackgroundTools { bg -> vm.edit { it.copy(background = bg) } }
+                                Tool("Import background") { pick("global") }
+                            }
+                            "Photo Background" -> {
+                                val photo = selected?.takeIf { it.kind == LayerKind.PHOTO && !it.locked }
+                                if (photo == null) {
+                                    Text("Select an unlocked photo to change its background.")
+                                } else {
+                                    BackgroundTools { bg -> vm.layer(photo.id) { it.copy(backdrop = bg) } }
+                                    Tool("Import background") { pick("background:${photo.id}") }
+                                }
+                            }
+                            "Elements" -> ElementTools(vm)
+                            "VS Styles" -> VsTools(document, vm)
+                            "Canvas" -> {
+                                ToolRow {
+                                    Tool(if (moveCanvas) "Edit layers" else "Pan / pinch canvas") { moveCanvas = !moveCanvas }
+                                    Tool("Zoom in") { viewportZoom = (viewportZoom + .25f).coerceAtMost(4f) }
+                                    Tool("Zoom out") {
+                                        viewportZoom = (viewportZoom - .25f).coerceAtLeast(1f)
+                                        if (viewportZoom == 1f) viewportPan = Offset.Zero
+                                    }
+                                    Tool("Reset view") { viewportZoom = 1f; viewportPan = Offset.Zero; moveCanvas = false }
+                                    Tool(if (showGrid) "Hide grid" else "Show grid") { showGrid = !showGrid }
+                                }
+                                CanvasTools(document, vm)
+                            }
+                            "Export" -> {
+                                ToolRow {
+                                    ExportFormat.entries.forEach { option -> FilterChip(format == option, { format = option }, { Text(option.name) }) }
+                                }
+                                ToolRow {
+                                    FilterChip(edge == 0, { edge = 0 }, { Text("Canvas size") })
+                                    listOf(1280, 1920, 3840).forEach { size ->
+                                        FilterChip(edge == size, { edge = size }, { Text("${size}px") })
+                                    }
+                                }
+                                ToolRow {
+                                    Button(onClick = { export(false) }, enabled = !exporting) { Text("Save") }
+                                    OutlinedButton(onClick = { export(true) }, enabled = !exporting) { Text("Share") }
+                                }
+                                if (exporting) LinearProgressIndicator(Modifier.fillMaxWidth())
                             }
                         }
-                        ToolRow {
-                            Button(onClick = { export(false) }, enabled = !exporting) { Text("Save") }
-                            OutlinedButton(onClick = { export(true) }, enabled = !exporting) { Text("Share") }
-                        }
-                        if (exporting) LinearProgressIndicator(Modifier.fillMaxWidth())
                     }
                 }
             }
         }
     }
-    ToolRow {
-        document.layers.filter { it.slot != null }.forEach { photo ->
-            Tool(photo.slot ?: "Photo") {
-                vm.select(photo.id)
-                panel = "Selection"
-                if (photo.asset == null && !photo.locked) pick(photo.id)
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Row(Modifier.fillMaxWidth().heightIn(min = 56.dp).semantics { contentDescription = "Editor tools" },
+            verticalAlignment = Alignment.CenterVertically) {
+            if (photo != null) {
+                TextButton(onClick = ::editorBack, modifier = Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp),
+                    contentPadding = PaddingValues(horizontal = 6.dp)) { Text("Back", maxLines = 1) }
+                key(photo.id) {
+                    ToolRow {
+                        Tool(if (photo.asset == null) "Add photo" else "Replace photo") {
+                            dismissPanel()
+                            pick(photo.id)
+                        }
+                        Tool("Zoom in") { openPanel(""); vm.layer(photo.id) { it.copy(cropZoom = (it.cropZoom * 1.15f).coerceAtMost(4f)) } }
+                        Tool("Zoom out") { openPanel(""); vm.layer(photo.id) { it.copy(cropZoom = (it.cropZoom / 1.15f).coerceAtLeast(.2f)) } }
+                        if (photo.asset != null) Tool("Remove BG") { openPanel("Remove BG") }
+                        Tool("Backgrounds") { openPanel("Photo Background") }
+                        Tool("Crop") { openPanel("Crop") }
+                        Tool("Rotate") { openPanel(""); vm.layer(photo.id) { it.copy(rotation = (it.rotation + 90f) % 360f) } }
+                        Tool("Adjust") { openPanel("Adjust") }
+                        Tool("Undo") { dismissPanel(); vm.undo() }
+                        Tool("Redo") { dismissPanel(); vm.redo() }
+                        Tool("Layer options") { openPanel("Selection") }
+                    }
+                }
+            } else ToolRow {
+                document.layers.filter { it.slot != null }.forEach { photo ->
+                    Tool(photo.slot ?: "Photo") {
+                        vm.select(photo.id)
+                        panel = if (photo.visible && !photo.locked) "" else "Selection"
+                        if (photo.asset == null && !photo.locked) pick(photo.id)
+                    }
+                }
+                Tool("Undo", vm::undo)
+                Tool("Redo", vm::redo)
+                Tool("Background") { panel = "Background" }
+                Tool("Text") {
+                    vm.add(PosterLayer(kind = LayerKind.TEXT, name = "Text", width = 820f, height = 230f, text = "Your headline"))
+                    panel = "Selection"
+                }
+                Tool("Elements") { panel = "Elements" }
+                if (document.mode == PosterMode.VOTING) Tool("VS Styles") { panel = "VS Styles" }
+                Tool("Layers") { panel = "Layers" }
+                Tool("Canvas") { panel = "Canvas" }
+                Tool("Import image") { pick("new") }
+                if (clipboard != null) Tool("Paste layer") {
+                    vm.pasteLayer()
+                    panel = "Selection"
+                }
             }
-        }
-        Tool("Undo", vm::undo)
-        Tool("Redo", vm::redo)
-        Tool("Background") { panel = "Background" }
-        Tool("Text") {
-            vm.add(PosterLayer(kind = LayerKind.TEXT, name = "Text", width = 820f, height = 230f, text = "Your headline"))
-            panel = "Selection"
-        }
-        Tool("Elements") { panel = "Elements" }
-        if (document.mode == PosterMode.VOTING) Tool("VS Styles") { panel = "VS Styles" }
-        Tool("Layers") { panel = "Layers" }
-        Tool("Canvas") { panel = "Canvas" }
-        Tool("Import image") { pick("new") }
-        if (clipboard != null) Tool("Paste layer") {
-            vm.pasteLayer()
-            panel = "Selection"
         }
     }
 }

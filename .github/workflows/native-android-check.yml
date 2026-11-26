@@ -71,6 +71,8 @@ jobs:
             test -s urdu-export.png
             adb exec-out run-as com.awisogera.votingpostermaker cat cache/mask-refinement.png > mask-refinement.png
             test -s mask-refinement.png
+            adb exec-out run-as com.awisogera.votingpostermaker cat cache/photo-dock.png > photo-dock.png
+            test -s photo-dock.png
             adb shell am start -W -n com.awisogera.votingpostermaker/.MainActivity
             adb shell uiautomator dump /sdcard/voting-poster-home.xml
             adb shell cat /sdcard/voting-poster-home.xml | grep -F "Single Poster Design"
@@ -84,6 +86,7 @@ jobs:
             native-android/native-home.png
             native-android/urdu-export.png
             native-android/mask-refinement.png
+            native-android/photo-dock.png
             native-android/navigation-failure.png
             native-android/failure-activities.txt
             native-android/failure-logcat.txt

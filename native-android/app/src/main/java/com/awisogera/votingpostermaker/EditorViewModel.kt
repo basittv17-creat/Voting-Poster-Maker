@@ -11,7 +11,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-data class CutoutPreview(val documentId: String, val layerId: String, val original: String, val image: String)
+data class CutoutPreview(val documentId: String, val layerId: String, val original: String, val image: String, val temporary: Boolean = true)
 
 class EditorViewModel(app: Application) : AndroidViewModel(app) {
     private val store = ProjectStore(app)
@@ -29,6 +29,7 @@ class EditorViewModel(app: Application) : AndroidViewModel(app) {
     fun copyLayer(layer: PosterLayer) { _clipboard.value = layer }
     fun pasteLayer() { _clipboard.value?.let { add(it.duplicate()) } }
     private var cutoutJob: Job? = null
+    private var cutoutRequest = 0L
     private val history = ArrayDeque<PosterDocument>()
     private val future = ArrayDeque<PosterDocument>()
     private val saves = Channel<PosterDocument>(Channel.UNLIMITED)
@@ -165,11 +166,20 @@ class EditorViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    fun startManualMask(layer: PosterLayer) {
+        val doc = _document.value ?: return
+        val original = layer.asset ?: return
+        if (cutout.value?.layerId == layer.id) return
+        cancelCutout()
+        cutout.value = CutoutPreview(doc.id, layer.id, original, layer.cutout ?: original, temporary = false)
+    }
+
     fun segment(layer: PosterLayer) {
         val doc = _document.value ?: return
         val key = layer.asset ?: return
         if (busy.value) return
         cancelCutout()
+        val request = cutoutRequest
         busy.value = true
         cutoutJob = viewModelScope.launch {
             try {
@@ -182,7 +192,7 @@ class EditorViewModel(app: Application) : AndroidViewModel(app) {
             } catch (_: OutOfMemoryError) {
                 notice.value = "This device does not have enough memory to remove the background."
             } finally {
-                busy.value = false
+                if (request == cutoutRequest) busy.value = false
             }
         }
     }
@@ -196,18 +206,18 @@ class EditorViewModel(app: Application) : AndroidViewModel(app) {
                 target.outputStream().use { check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) }
             }
             check(cutout.value == preview)
-            cutout.value = preview.copy(image = target.name)
+            cutout.value = preview.copy(image = target.name, temporary = true)
             retained = true
         } finally {
             withContext(NonCancellable + Dispatchers.IO) {
-                if (retained) store.asset(preview.image).delete() else target.delete()
+                if (!retained) target.delete() else if (preview.temporary) store.asset(preview.image).delete()
             }
         }
     }
 
     fun applyCutout() {
         val preview = cutout.value ?: return
-        if (_document.value?.id == preview.documentId &&
+        if (preview.temporary && _document.value?.id == preview.documentId &&
             _document.value?.layers?.find { it.id == preview.layerId }?.asset == preview.original) {
             layer(preview.layerId) { it.copy(cutout = preview.image) }
             cutout.value = null
@@ -215,8 +225,10 @@ class EditorViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun cancelCutout() {
+        cutoutRequest++
         cutoutJob?.cancel()
-        cutout.value?.let { preview ->
+        busy.value = false
+        cutout.value?.takeIf { it.temporary }?.let { preview ->
             viewModelScope.launch(Dispatchers.IO) { store.asset(preview.image).delete() }
         }
         cutout.value = null

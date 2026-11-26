@@ -162,7 +162,13 @@ class OfflinePosterTest {
         val edited = requireNotNull(original.copy(Bitmap.Config.ARGB_8888, true))
         try {
             val brush = MaskBrush(original, edited)
+            brush.beginStroke()
             brush.dab(32.5f, 32.5f, 20f, .5f, restore = false)
+            brush.finishStroke()
+            assertEquals(0, edited.getPixel(32, 32) ushr 24)
+            brush.undoStroke()
+            assertEquals(android.graphics.Color.RED, edited.getPixel(32, 32))
+            brush.redoStroke()
             assertEquals(0, edited.getPixel(32, 32) ushr 24)
             assertTrue(edited.getPixel(47, 32) ushr 24 in 1..254)
             assertEquals(android.graphics.Color.RED, edited.getPixel(0, 0))

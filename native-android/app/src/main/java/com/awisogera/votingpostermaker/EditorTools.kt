@@ -52,26 +52,15 @@ fun LayerTools(layer: PosterLayer, vm: EditorViewModel, pick: (String) -> Unit, 
     if (layer.kind == LayerKind.PHOTO) {
         ToolRow {
             Tool(if (layer.asset == null) "Add photo" else "Replace photo") { pick(layer.id) }
-            if (layer.asset != null) Tool("Remove Background") { vm.segment(layer) }
+            if (layer.asset != null) Tool("Remove BG") { panel("Remove BG") }
             if (layer.cutout != null) Tool("Restore Original") { update { it.copy(cutout = null) } }
             Tool("Change Background") { panel("Photo Background") }
             Tool("Flip H") { update { it.copy(flipX = !it.flipX) } }
             Tool("Flip V") { update { it.copy(flipY = !it.flipY) } }
         }
-        if (layer.asset != null) {
-            ToolRow {
-                Tool("B&W") { update { it.copy(saturation = 0f) } }
-                Tool("Warm") { update { it.copy(warmth = 30f) } }
-                Tool("Vignette") { update { it.copy(vignette = !it.vignette) } }
-                Tool("Reset filters") { update { it.copy(saturation = 1f, contrast = 1f, warmth = 0f, brightness = 0f, vignette = false) } }
-            }
-            Adjustment("Crop zoom", layer.cropZoom, 1f..4f) { value -> update { it.copy(cropZoom = value) } }
-            Adjustment("Crop left / right", layer.cropX, -1f..1f) { value -> update { it.copy(cropX = value) } }
-            Adjustment("Crop up / down", layer.cropY, -1f..1f) { value -> update { it.copy(cropY = value) } }
-            Adjustment("Brightness", layer.brightness, -90f..90f) { value -> update { it.copy(brightness = value) } }
-            Adjustment("Contrast", layer.contrast, .2f..2f) { value -> update { it.copy(contrast = value) } }
-            Adjustment("Saturation", layer.saturation, 0f..2f) { value -> update { it.copy(saturation = value) } }
-            Adjustment("Warmth", layer.warmth, -55f..55f) { value -> update { it.copy(warmth = value) } }
+        if (layer.asset != null) ToolRow {
+            Tool("Crop") { panel("Crop") }
+            Tool("Adjust") { panel("Adjust") }
         }
     }
     if (layer.kind == LayerKind.TEXT || layer.kind == LayerKind.VS) {
@@ -132,6 +121,30 @@ fun LayerTools(layer: PosterLayer, vm: EditorViewModel, pick: (String) -> Unit, 
     }
     OutlinedTextField(name, { name = it.take(80) }, label = { Text("Layer name") }, modifier = Modifier.fillMaxWidth())
     if (name.isNotBlank() && name.trim() != layer.name) Tool("Rename") { update { it.copy(name = name.trim()) } }
+}
+
+@Composable
+internal fun CropTools(layer: PosterLayer, vm: EditorViewModel) {
+    fun update(change: (PosterLayer) -> PosterLayer) = vm.layer(layer.id, change)
+    Adjustment("Crop zoom", layer.cropZoom, .2f..4f) { value -> update { it.copy(cropZoom = value) } }
+    Adjustment("Crop left / right", layer.cropX, -1f..1f) { value -> update { it.copy(cropX = value) } }
+    Adjustment("Crop up / down", layer.cropY, -1f..1f) { value -> update { it.copy(cropY = value) } }
+    Tool("Center crop") { update { it.copy(cropX = 0f, cropY = 0f, cropZoom = 1f) } }
+}
+
+@Composable
+internal fun PhotoAdjustments(layer: PosterLayer, vm: EditorViewModel) {
+    fun update(change: (PosterLayer) -> PosterLayer) = vm.layer(layer.id, change)
+    ToolRow {
+        Tool("B&W") { update { it.copy(saturation = 0f) } }
+        Tool("Warm") { update { it.copy(warmth = 30f) } }
+        Tool("Vignette") { update { it.copy(vignette = !it.vignette) } }
+        Tool("Reset filters") { update { it.copy(saturation = 1f, contrast = 1f, warmth = 0f, brightness = 0f, vignette = false) } }
+    }
+    Adjustment("Brightness", layer.brightness, -90f..90f) { value -> update { it.copy(brightness = value) } }
+    Adjustment("Contrast", layer.contrast, .2f..2f) { value -> update { it.copy(contrast = value) } }
+    Adjustment("Saturation", layer.saturation, 0f..2f) { value -> update { it.copy(saturation = value) } }
+    Adjustment("Warmth", layer.warmth, -55f..55f) { value -> update { it.copy(warmth = value) } }
 }
 
 @Composable

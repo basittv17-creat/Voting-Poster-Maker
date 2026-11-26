@@ -85,9 +85,9 @@ class EditorNavigationTest {
                     shell("input swipe $startX $startY ${startX + 32} $startY 400")
                     val moved = persisted(store, seeded.id) { it.selectedId == layer.id && it.selected!!.x > layer.x }
                     assertEquals(expected.filterNot { it.id == layer.id }, moved.layers.filterNot { it.id == layer.id })
-                    tap("Undo")
+                    tapDock("Undo")
                     persisted(store, seeded.id) { it.layers == expected }
-                    tap("Redo")
+                    tapDock("Redo")
                     persisted(store, seeded.id) { it.layers == moved.layers }
                     val movedLayer = moved.layers.first { it.id == layer.id }
                     val (pinchX, pinchY) = centerOnCanvas(movedLayer)
@@ -97,9 +97,9 @@ class EditorNavigationTest {
                         actual.scale > movedLayer.scale * 1.1f && abs(actual.rotation - movedLayer.rotation) > 10f
                     }
                     assertEquals(moved.layers.filterNot { it.id == layer.id }, transformed.layers.filterNot { it.id == layer.id })
-                    tap("Undo")
+                    tapDock("Undo")
                     persisted(store, seeded.id) { it.layers == moved.layers }
-                    tap("Redo")
+                    tapDock("Redo")
                     persisted(store, seeded.id) { it.layers == transformed.layers }
                     expected = transformed.layers
                 }
@@ -130,8 +130,17 @@ class EditorNavigationTest {
                 awaitText("Create a poster")
                 tap("My Designs")
                 tap(fixture.title)
+                val dock = bounds("Editor tools")
                 tap("A")
-                tap("Remove Background")
+                val pinned = Rect().also { awaitText("Back").getBoundsInScreen(it) }
+                assertEquals(dock, bounds("Editor tools"))
+                tapDock("Remove BG")
+                assertEquals(dock, bounds("Editor tools"))
+                assertEquals(pinned, Rect().also { awaitText("Back").getBoundsInScreen(it) })
+                assertTrue(bounds("Editor panel").bottom <= dock.top)
+                assertTrue(bounds("Poster canvas").bottom <= bounds("Editor panel").top)
+                capture("photo-dock.png")
+                tap("Auto remove")
                 awaitText("Preview background removal")
                 tap("Show original")
                 awaitText("Show cutout")
@@ -141,7 +150,7 @@ class EditorNavigationTest {
                     it.contentDescription?.toString() == "Cutout brush canvas"
                 }, "cutout brush canvas")
                 capture("mask-refinement.png")
-                tap("Done")
+                tapInPanel("Done")
                 awaitText("Preview background removal")
                 tap("Apply")
                 val applied = persisted(store, fixture.id) { it.layers.first { layer -> layer.id == slot.id }.cutout != null }
@@ -149,7 +158,7 @@ class EditorNavigationTest {
                 refined = appliedSlot.cutout
                 assertEquals(source.name, appliedSlot.asset)
                 assertEquals(fixture.layers.filterNot { it.id == slot.id }, applied.layers.filterNot { it.id == slot.id })
-                tap("Undo")
+                tapDock("Undo")
                 persisted(store, fixture.id) { it.layers == fixture.layers }
             }
         } finally {
@@ -200,8 +209,7 @@ class EditorNavigationTest {
                                     put(MediaStore.Images.Media.IS_PENDING, 0)
                                 }, null, null))
 
-                                tap(requireNotNull(slot.slot))
-                                if (index > 0) tap("Replace photo")
+                                if (index == 0) tapDock(requireNotNull(slot.slot)) else tapDock("Replace photo")
                                 val thumbnail = awaitNode("System Photo Picker photo") { node ->
                                     node.packageName?.toString()?.let { pkg ->
                                         pkg.contains("providers.media") || pkg.contains("photopicker")
@@ -226,6 +234,8 @@ class EditorNavigationTest {
                                 resolver.delete(fixture, null, null)
                             }
                         }
+                        back()
+                        persisted(store, draft.id) { it.selectedId == null }
                     }
                     tap("Home")
                 }
@@ -338,6 +348,43 @@ class EditorNavigationTest {
             SystemClock.sleep(100)
         } while (SystemClock.uptimeMillis() < deadline)
         error(message)
+    }
+
+    private fun bounds(description: String): Rect = Rect().also { rect ->
+        awaitNode(description) { it.contentDescription?.toString() == description }.getBoundsInScreen(rect)
+    }
+
+    private fun tapDock(label: String) {
+        val dock = bounds("Editor tools")
+        fun visible() = nodes().firstOrNull { node ->
+            val rect = Rect().also(node::getBoundsInScreen)
+            node.isVisibleToUser && hasLabel(node, label) && dock.contains(rect.centerX(), rect.centerY()) && rect.width() >= 12
+        }
+        for (forward in listOf(true, false)) {
+            repeat(8) {
+                visible()?.let { touch(it, label); return }
+                val start = dock.left + dock.width() * 4 / 5
+                val end = dock.left + dock.width() / 4
+                val y = dock.centerY()
+                if (forward) shell("input swipe $start $y $end $y 230") else shell("input swipe $end $y $start $y 230")
+                SystemClock.sleep(180)
+            }
+        }
+        error("Dock action unavailable: $label")
+    }
+
+    private fun tapInPanel(label: String) {
+        val rect = bounds("Editor panel")
+        repeat(7) {
+            nodes().firstOrNull { node ->
+                val hit = Rect().also(node::getBoundsInScreen)
+                node.isVisibleToUser && hasLabel(node, label) && rect.contains(hit.centerX(), hit.centerY())
+            }?.let { touch(it, label); return }
+            // Scroll along the panel edge, outside the mask drawing surface.
+            shell("input swipe ${rect.left + 3} ${rect.bottom - 8} ${rect.left + 3} ${rect.top + 8} 280")
+            SystemClock.sleep(180)
+        }
+        error("Panel action unavailable: $label")
     }
 
     private fun tap(label: String) {

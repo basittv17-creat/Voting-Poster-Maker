@@ -16,6 +16,60 @@ internal class MaskBrush(private val original: Bitmap, val edited: Bitmap) {
     private var pixels = IntArray(0)
     private var source = IntArray(0)
 
+    // Save pixels only for the tiles touched by this stroke. Swapping a patch
+    // with the bitmap also produces the inverse patch used by redo.
+    private data class Tile(val x: Int, val y: Int, val width: Int, val height: Int, val before: IntArray)
+    private val undo = ArrayDeque<List<Tile>>()
+    private val redo = ArrayDeque<List<Tile>>()
+    private var strokeTiles: MutableMap<Int, Tile>? = null
+    private var historyBytes = 0
+    val canUndo get() = undo.isNotEmpty()
+    val canRedo get() = redo.isNotEmpty()
+
+    fun beginStroke() { strokeTiles = mutableMapOf() }
+
+    fun finishStroke() {
+        val tiles = strokeTiles?.values?.toList().orEmpty()
+        strokeTiles = null
+        if (tiles.isEmpty()) return
+        redo.forEach { historyBytes -= it.sumOf { tile -> tile.before.size * 4 } }
+        redo.clear()
+        undo.addLast(tiles)
+        historyBytes += tiles.sumOf { it.before.size * 4 }
+        while (undo.size > 1 && (historyBytes > 12 * 1024 * 1024 || undo.size > 60)) {
+            historyBytes -= undo.removeFirst().sumOf { it.before.size * 4 }
+        }
+    }
+
+    private fun rememberTiles(left: Int, top: Int, right: Int, bottom: Int) {
+        val tiles = strokeTiles ?: return
+        val side = 64
+        for (ty in top / side..(bottom - 1) / side) for (tx in left / side..(right - 1) / side) {
+            val x = tx * side
+            val y = ty * side
+            tiles.getOrPut(y * edited.width + x) {
+                val w = minOf(side, edited.width - x)
+                val h = minOf(side, edited.height - y)
+                Tile(x, y, w, h, IntArray(w * h).also { edited.getPixels(it, 0, w, x, y, w, h) })
+            }
+        }
+    }
+
+    private fun swap(from: ArrayDeque<List<Tile>>, to: ArrayDeque<List<Tile>>) {
+        val tiles = from.removeLastOrNull() ?: return
+        for (tile in tiles) {
+            val size = tile.before.size
+            if (pixels.size < size) pixels = IntArray(size)
+            edited.getPixels(pixels, 0, tile.width, tile.x, tile.y, tile.width, tile.height)
+            edited.setPixels(tile.before, 0, tile.width, tile.x, tile.y, tile.width, tile.height)
+            pixels.copyInto(tile.before, endIndex = size)
+        }
+        to.addLast(tiles)
+    }
+
+    fun undoStroke() = swap(undo, redo)
+    fun redoStroke() = swap(redo, undo)
+
     fun dab(x: Float, y: Float, radius: Float, feather: Float, restore: Boolean) {
         val left = floor(x - radius).toInt().coerceIn(0, edited.width)
         val top = floor(y - radius).toInt().coerceIn(0, edited.height)
@@ -24,6 +78,7 @@ internal class MaskBrush(private val original: Bitmap, val edited: Bitmap) {
         val width = right - left
         val height = bottom - top
         if (width == 0 || height == 0) return
+        rememberTiles(left, top, right, bottom)
         val count = width * height
         if (pixels.size < count) pixels = IntArray(count)
         if (restore && source.size < count) source = IntArray(count)

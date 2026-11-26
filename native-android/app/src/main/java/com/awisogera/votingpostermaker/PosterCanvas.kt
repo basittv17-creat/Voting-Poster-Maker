@@ -27,6 +27,8 @@ fun PosterCanvas(
     pan: Offset = Offset.Zero,
     moveCanvas: Boolean = false,
     showGrid: Boolean = false,
+    inputEnabled: Boolean = true,
+    checkerboardLayer: String? = null,
     onViewport: (Float, Offset) -> Unit = { _, _ -> },
     onSelect: (PosterLayer?, Boolean) -> Unit = { _, _ -> },
 ) {
@@ -45,7 +47,7 @@ fun PosterCanvas(
     val updateViewport by rememberUpdatedState(onViewport)
     val liveZoom by rememberUpdatedState(zoom)
     val livePan by rememberUpdatedState(pan)
-    val gestures = if (vm == null) Modifier else Modifier.pointerInput(document.id, document.width, document.height, moveCanvas) {
+    val gestures = if (vm == null || !inputEnabled) Modifier else Modifier.pointerInput(document.id, document.width, document.height, moveCanvas) {
         awaitEachGesture {
             val down = awaitFirstDown()
             val ratio = min(size.width.toFloat() / document.width, size.height.toFloat() / document.height)
@@ -114,7 +116,7 @@ fun PosterCanvas(
             native.clipRect(0f, 0f, size.width, size.height)
             native.translate(left, top)
             native.scale(width / 1200f, height / 900f)
-            renderer.draw(native, document, images, editing = true)
+            renderer.draw(native, document, images, editing = true, checkerboardLayer = checkerboardLayer)
             if (showGrid) {
                 val paint = android.graphics.Paint().apply { color = 0x75ffffff; strokeWidth = 2f }
                 for (x in listOf(300f, 600f, 900f)) native.drawLine(x, 0f, x, 900f, paint)

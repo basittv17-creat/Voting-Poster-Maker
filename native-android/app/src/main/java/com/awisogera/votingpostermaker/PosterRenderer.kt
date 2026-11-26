@@ -52,7 +52,7 @@ class PosterRenderer(private val context: Context, private val store: ProjectSto
         }
     }.distinct()
 
-    fun draw(canvas: Canvas, document: PosterDocument, bitmaps: Map<String, Bitmap>, editing: Boolean) {
+    fun draw(canvas: Canvas, document: PosterDocument, bitmaps: Map<String, Bitmap>, editing: Boolean, checkerboardLayer: String? = null) {
         val outer = canvas.save()
         val area = RectF(0f, 0f, 1200f, 900f)
         canvas.clipRect(area)
@@ -71,7 +71,18 @@ class PosterRenderer(private val context: Context, private val store: ProjectSto
                         paint.color = 0x65000000
                         canvas.drawRoundRect(RectF(box).apply { offset(8f, 12f) }, 16f, 16f, paint)
                     }
-                    backdrop(canvas, layer.backdrop, box, bitmaps)
+                    if (editing && checkerboardLayer == layer.id) {
+                        val cell = 32f
+                        for (y in 0 until kotlin.math.ceil(box.height() / cell).toInt()) {
+                            for (x in 0 until kotlin.math.ceil(box.width() / cell).toInt()) {
+                                paint.color = if ((x + y) % 2 == 0) Color.LTGRAY else Color.GRAY
+                                val left = box.left + x * cell
+                                val top = box.top + y * cell
+                                canvas.drawRect(left, top, minOf(box.right, left + cell), minOf(box.bottom, top + cell), paint)
+                            }
+                        }
+                        paint.color = Color.WHITE
+                    } else backdrop(canvas, layer.backdrop, box, bitmaps)
                     val bitmap = (layer.cutout ?: layer.asset)?.let { bitmaps[it] }
                     if (bitmap != null) {
                         val photo = canvas.save()

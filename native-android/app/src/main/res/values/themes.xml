@@ -5,7 +5,7 @@
     </style>
     <style name="Theme.Poster" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">#080D1B</item>
-        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/voting_poster_icon</item>
         <item name="postSplashScreenTheme">@style/Theme.Poster.Base</item>
     </style>
 </resources>
