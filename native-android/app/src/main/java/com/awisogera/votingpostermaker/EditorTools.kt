@@ -32,8 +32,8 @@ fun BackgroundTools(apply: (Backdrop) -> Unit) {
 }
 
 @Composable
-private fun Swatches(apply: (Long) -> Unit) = ToolRow {
-    swatches.forEach { color ->
+private fun Swatches(colors: List<Long> = swatches, apply: (Long) -> Unit) = ToolRow {
+    colors.forEach { color ->
         val hex = color.toString(16).takeLast(6).uppercase()
         Button(onClick = { apply(color) }, colors = ButtonDefaults.buttonColors(
             containerColor = Color(color), contentColor = if (color == 0xff111827 || color == 0xff222222) Color.White else Color.Black,
@@ -103,8 +103,10 @@ fun LayerTools(layer: PosterLayer, vm: EditorViewModel, pick: (String) -> Unit, 
         Swatches { color -> update { it.copy(shadowColor = color) } }
     }
     if (layer.kind in listOf(LayerKind.TEXT, LayerKind.SHAPE, LayerKind.VS)) {
-        Text("Fill")
-        Swatches { color -> update { it.copy(color = color) } }
+        Text(if (layer.kind == LayerKind.TEXT) "Original text colors" else "Fill")
+        Swatches(if (layer.kind == LayerKind.TEXT) legacyTextColors else swatches) { color ->
+            update { it.copy(color = color) }
+        }
     }
     Adjustment("Resize", layer.scale, .15f..6f) { value -> update { it.copy(scale = value) } }
     Adjustment("Rotation", layer.rotation, -360f..360f) { value -> update { it.copy(rotation = value) } }
