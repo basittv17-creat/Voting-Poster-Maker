@@ -16,6 +16,40 @@ class PosterDocumentTest {
         assertNotEquals(document.background, updated.layers[0].backdrop)
     }
 
+    @Test fun originalFramesSwitchInPlaceWithoutLosingPhotosTextOrStickers() {
+        val initial = templates(PosterMode.VOTING).first().create(PosterMode.VOTING)
+        val a = initial.layers.first { it.slot == "A" }
+        val b = initial.layers.first { it.slot == "B" }
+        val extra = PosterLayer(kind = LayerKind.TEXT, name = "Urdu", text = "اپنا ووٹ",
+            x = 610f, y = 777f)
+        val design = initial.copy(layers = initial.layers.map {
+            when (it.id) { a.id -> it.copy(asset = "portrait-a", cutout = "mask-a", x = it.x + 20f)
+                b.id -> it.copy(asset = "portrait-b")
+                else -> it }
+        } + extra)
+        val framed = design.switchVotingFrame("tagda_muqabla")
+        assertEquals("tagda_muqabla", framed.layers.first { it.kind == LayerKind.FRAME }.style)
+        assertEquals(1, framed.layers.count { it.name == "Legacy divider" })
+        assertEquals(extra, framed.layers.first { it.id == extra.id })
+        assertEquals("portrait-a", framed.layers.first { it.id == a.id }.asset)
+        assertEquals("mask-a", framed.layers.first { it.id == a.id }.cutout)
+        assertEquals("portrait-b", framed.layers.first { it.id == b.id }.asset)
+        val changed = framed.switchVotingFrame("green_gold")
+        assertEquals("green_gold", changed.layers.first { it.kind == LayerKind.FRAME }.style)
+        assertEquals(extra, changed.layers.first { it.id == extra.id })
+        val plain = changed.switchVotingFrame(null)
+        assertTrue(plain.layers.none { it.kind == LayerKind.FRAME || it.name == "Legacy divider" })
+        assertEquals(design.layers, plain.layers)
+        assertEquals(plain, plain.switchVotingFrame(null))
+    }
+
+    @Test fun allOriginalTextColorsAreAvailable() {
+        assertEquals(15, legacyTextColors.size)
+        assertEquals(0xffffffff, legacyTextColors.first())
+        assertEquals(0xfffda4af, legacyTextColors.last())
+        assertEquals(15, legacyTextColors.distinct().size)
+    }
+
     @Test fun legacyPhotoResetRecentersOnlyItsOriginalABSlot() {
         for (template in templates(PosterMode.VOTING).take(3)) {
             val initial = template.create(PosterMode.VOTING)
