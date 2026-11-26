@@ -89,6 +89,13 @@ fun LayerTools(layer: PosterLayer, vm: EditorViewModel, pick: (String) -> Unit, 
         if (layer.kind == LayerKind.TEXT) {
             Text("Text background")
             BackgroundTools { backdrop -> update { it.copy(backdrop = backdrop) } }
+            Text("Original text background styles")
+            ToolRow {
+                legacyTextBackgrounds.forEach { original ->
+                    Tool(original.title) { update { it.copy(backdrop = original.backdrop) } }
+                }
+                Tool("Remove background") { update { it.copy(backdrop = Backdrop()) } }
+            }
             Text("Outline color")
             Swatches { color -> update { it.copy(strokeColor = color) } }
         }
