@@ -1,0 +1,99 @@
+name: Native vs released v9 baseline
+on:
+  push:
+    branches: [feature/native-kotlin-compose-rebuild]
+    paths: [.github/workflows/native-v9-baseline-compare.yml]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  compare-installed-builds:
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [29, 35]
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download immutable historical and native candidate APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p comparison/old comparison/native comparison/evidence
+          # Run #79: the last successful historical main versionCode=9 debug APK.
+          gh run download 39577948457 --repo "$GITHUB_REPOSITORY" --name app-debug-apk --dir comparison/old
+          # Signed Kotlin v12 release candidate, built from SHA 3567e9f.
+          gh run download 45818911552 --repo "$GITHUB_REPOSITORY" --name voting-poster-maker-native-signed-candidate --dir comparison/native
+          test -s comparison/old/app-debug.apk
+          test -s comparison/native/apk/release/app-release.apk
+          sha256sum comparison/old/app-debug.apk comparison/native/apk/release/app-release.apk > comparison/evidence/apk-sha256.txt
+          printf '%s\n' \
+            'Historical version 9 APK: GitHub Actions 39577948457 (main; debug-signed)' \
+            'Native version 12 APK: GitHub Actions 45818911552 (branch commit 3567e9f; production upload-signed)' \
+            'The two builds are installed sequentially with an uninstall between them.' \
+            'THIS DOES NOT PROVE an in-place upgrade or all-feature parity.' \
+            'The current PR HEAD may contain newer code than this pinned signed candidate.' \
+            'The v9 WebView can be blank on certain emulator profiles: capture screenshots and WebView logs; never count a process-only launch as UI feature parity.' > comparison/evidence/README.txt
+      - name: Enable Android emulator acceleration
+        run: sudo chmod a+rw /dev/kvm
+      - name: Install and launch both APKs on a real API 35 emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          script: |
+            set -e
+            mkdir -p comparison/evidence
+            echo '===== Historical v9 on fresh emulator ====='
+            adb install comparison/old/app-debug.apk
+            adb shell am start -W -n com.awisogera.votingpostermaker/.MainActivity
+            sleep 15
+            adb shell pidof com.awisogera.votingpostermaker > comparison/evidence/v9-pid.txt || echo 'v9 process exited; continuing diagnostics and native launch.' > comparison/evidence/v9-launch-status.txt
+            adb shell dumpsys package com.awisogera.votingpostermaker | grep -m 1 'versionCode=' > comparison/evidence/v9-version.txt
+            grep -q 'versionCode=9' comparison/evidence/v9-version.txt
+            adb exec-out screencap -p > comparison/evidence/v9-installed.png
+            test -s comparison/evidence/v9-installed.png
+            adb logcat -d -v brief > comparison/evidence/v9-logcat.txt
+            adb shell dumpsys webviewupdate > comparison/evidence/v9-webview-provider.txt || true
+            adb shell dumpsys activity activities > comparison/evidence/v9-activities.txt || true
+            adb shell uiautomator dump /sdcard/v9-ui.xml || true
+            adb pull /sdcard/v9-ui.xml comparison/evidence/v9-ui.xml || true
+            echo '===== Kotlin signed candidate after clean uninstall ====='
+            adb uninstall com.awisogera.votingpostermaker
+            adb install comparison/native/apk/release/app-release.apk
+            adb shell am start -W -n com.awisogera.votingpostermaker/.MainActivity
+            sleep 8
+            adb shell pidof com.awisogera.votingpostermaker
+            adb shell dumpsys package com.awisogera.votingpostermaker | grep -m 1 'versionCode=' > comparison/evidence/native-version.txt
+            grep -q 'versionCode=12' comparison/evidence/native-version.txt
+            adb exec-out screencap -p > comparison/evidence/native-installed.png
+            test -s comparison/evidence/native-installed.png
+            adb shell uiautomator dump /sdcard/native-ui.xml
+            adb pull /sdcard/native-ui.xml comparison/evidence/native-ui.xml
+            # Some busy GitHub emulator hosts show an Android system ANR for Pixel Launcher,
+            # even though the app itself launched. Dismiss only THAT system dialog and
+            # relaunch the app; never silently declare the app's UI successful.
+            grep -q "Pixel Launcher isn.t responding" comparison/evidence/native-ui.xml && adb shell input tap 160 330 || true
+            adb shell am start -W -n com.awisogera.votingpostermaker/.MainActivity
+            sleep 4
+            adb shell uiautomator dump /sdcard/native-ui.xml
+            adb pull /sdcard/native-ui.xml comparison/evidence/native-ui.xml
+            adb exec-out screencap -p > comparison/evidence/native-installed.png
+            grep -q 'Voting Poster Maker' comparison/evidence/native-ui.xml
+            grep -q 'Single Poster Design' comparison/evidence/native-ui.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: voting-poster-v9-vs-kotlin-api${{ matrix.api }}-evidence
+          path: comparison/evidence
+          if-no-files-found: warn

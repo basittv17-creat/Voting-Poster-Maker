@@ -1,0 +1,11 @@
+<resources>
+    <style name="Theme.Poster.Base" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#080D1B</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+    <style name="Theme.Poster" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#080D1B</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/voting_poster_icon</item>
+        <item name="postSplashScreenTheme">@style/Theme.Poster.Base</item>
+    </style>
+</resources>
