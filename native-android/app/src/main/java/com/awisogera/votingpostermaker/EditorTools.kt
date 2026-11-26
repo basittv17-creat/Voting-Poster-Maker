@@ -74,7 +74,7 @@ fun LayerTools(layer: PosterLayer, vm: EditorViewModel, pick: (String) -> Unit, 
             listOf("start", "center", "end").forEach { alignment ->
                 Tool(alignment.replaceFirstChar(Char::uppercase)) { update { it.copy(textAlign = alignment) } }
             }
-            listOf("Sans" to "sans-serif", "Serif" to "serif", "Mono" to "monospace").forEach { (title, font) ->
+            legacyTextFonts.forEach { (title, font) ->
                 Tool(title) { update { it.copy(font = font, fontAsset = null) } }
             }
             Tool("Import font") { pick("font:${layer.id}") }
@@ -97,7 +97,9 @@ fun LayerTools(layer: PosterLayer, vm: EditorViewModel, pick: (String) -> Unit, 
                 Tool("Remove background") { update { it.copy(backdrop = Backdrop()) } }
             }
             Text("Outline color")
-            Swatches { color -> update { it.copy(strokeColor = color) } }
+            Swatches(legacyTextStrokeColors + swatches.filterNot(legacyTextStrokeColors::contains)) { color ->
+                update { it.copy(strokeColor = color) }
+            }
         }
         Text("Shadow color")
         Swatches { color -> update { it.copy(shadowColor = color) } }
