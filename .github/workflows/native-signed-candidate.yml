@@ -3,11 +3,14 @@ name: Native signed candidate
 on:
   push:
     branches: [feature/native-kotlin-compose-rebuild]
-    paths: [.github/workflows/native-signed-candidate.yml]
+    paths:
+      - 'native-android/**'
+      - '.github/workflows/native-signed-candidate.yml'
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   candidate:
@@ -79,6 +82,41 @@ jobs:
           grep -Fxq 'jar verified.' "$RUNNER_TEMP/vpm-aab-signature.txt"
           "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --print-certs "$apk"
           sha256sum "$aab" "$apk"
+      - name: Check v9 upload certificate, package identity and 16 KB APK alignment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          old_dir="$RUNNER_TEMP/vpm-old-v9-aab"
+          mkdir -p "$old_dir"
+          gh run download 39577948457 --repo "$GITHUB_REPOSITORY" --name app-release-aab --dir "$old_dir"
+          old_aab="$old_dir/app-release.aab"
+          new_aab=app/build/outputs/bundle/release/app-release.aab
+          new_apk=app/build/outputs/apk/release/app-release.apk
+          test -s "$old_aab" && test -s "$new_aab" && test -s "$new_apk"
+          old_fp=$(keytool -printcert -jarfile "$old_aab" | awk -F 'SHA256: ' '/SHA256:/{print $2; exit}' | tr -d '\r')
+          new_fp=$(keytool -printcert -jarfile "$new_aab" | awk -F 'SHA256: ' '/SHA256:/{print $2; exit}' | tr -d '\r')
+          test -n "$old_fp" && test -n "$new_fp"
+          if [ "$old_fp" != "$new_fp" ]; then
+            echo "::error::Historical v9 and Kotlin upload-signing certificates differ."
+            exit 1
+          fi
+          echo "Historical v9/Kotlin upload certificate match: $new_fp"
+          package_line=$("$ANDROID_HOME/build-tools/36.0.0/aapt" dump badging "$new_apk" | grep -m1 '^package:')
+          if [[ "$package_line" != *"name='com.awisogera.votingpostermaker'"* ]]; then
+            echo "::error::Unexpected Kotlin application ID."
+            exit 1
+          fi
+          version_code=$(echo "$package_line" | sed -n "s/.*versionCode='\([0-9]*\)'.*/\1/p")
+          if ! [[ "$version_code" =~ ^[0-9]+$ ]] || [ "$version_code" -le 11 ]; then
+            echo "::error::Kotlin version code must exceed the known main version 11."
+            exit 1
+          fi
+          echo "Release candidate application ID verified; versionCode=$version_code"
+          "$ANDROID_HOME/build-tools/36.0.0/zipalign" -c -P 16 4 "$new_apk"
+          echo "Release APK has 16 KB ZIP alignment for uncompressed native libraries."
+          # This is upload-key compatibility, NOT Play App Signing, live Play policy approval
+          # or evidence of an in-place update of the Play-distributed installation.
       - uses: actions/upload-artifact@v4
         with:
           name: voting-poster-maker-native-signed-candidate
