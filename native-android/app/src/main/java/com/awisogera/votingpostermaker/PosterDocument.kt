@@ -100,6 +100,40 @@ data class PosterDocument(
     fun updateLayer(id: String, change: (PosterLayer) -> PosterLayer) =
         copy(layers = layers.map { if (it.id == id) change(it) else it })
 
+    /** Change the exact legacy frame without deleting either portrait or its edits.
+     *  Keeps layer IDs, masks, text, stickers and other user-created objects intact. */
+    fun switchVotingFrame(style: String?): PosterDocument {
+        if (mode != PosterMode.VOTING || style !in setOf(null, "green_gold", "tagda_muqabla")) return this
+        val previous = layers.firstOrNull { it.kind == LayerKind.FRAME &&
+            it.style in setOf("green_gold", "tagda_muqabla") }?.style
+        if (previous == style) return this
+        val oldFramed = previous != null
+        val newFramed = style != null
+        val kept = layers.filterNot {
+            (it.kind == LayerKind.FRAME && it.style in setOf("green_gold", "tagda_muqabla")) ||
+                (it.kind == LayerKind.SHAPE && it.name == "Legacy divider")
+        }
+        val slots = kept.filter { it.kind == LayerKind.PHOTO && it.slot in listOf("A", "B") }.map { photo ->
+            val oldX = if (photo.slot == "A") (if (oldFramed) 320f else 310f) else (if (oldFramed) 880f else 890f)
+            val newX = if (photo.slot == "A") (if (newFramed) 320f else 310f) else (if (newFramed) 880f else 890f)
+            photo.copy(x = photo.x + newX - oldX, y = photo.y + (if (newFramed) 410f else 430f) -
+                (if (oldFramed) 410f else 430f), height = if (newFramed) 680f else 610f)
+        }
+        val other = kept.filterNot { it.kind == LayerKind.PHOTO && it.slot in listOf("A", "B") }
+        val divider = if (!newFramed) emptyList() else listOf(
+            PosterLayer(kind = LayerKind.SHAPE, name = "Legacy divider",
+                x = 590f, y = 410f, width = 7f, height = 680f, locked = true)
+        )
+        val frame = when (style) {
+            "green_gold" -> listOf(PosterLayer(kind = LayerKind.FRAME, name = "Green & Gold",
+                style = style, width = 1200f, height = 900f, locked = true))
+            "tagda_muqabla" -> listOf(PosterLayer(kind = LayerKind.FRAME, name = "Tagda Muqabla #1",
+                style = style, width = 1200f, height = 900f, locked = true))
+            else -> emptyList()
+        }
+        return copy(layers = slots + divider + frame + other)
+    }
+
     /** Mirrors the original A/B Reset action: re-centre the photo in its slot,
      *  while keeping the imported original, cutout and backdrop intact.
      *  Advanced native flips/crop/rotation are reset as well. */
