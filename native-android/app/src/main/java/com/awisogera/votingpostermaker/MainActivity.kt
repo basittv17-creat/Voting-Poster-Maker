@@ -409,6 +409,14 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                                     }
                                 }
                             }
+                            "Frame" -> if (document.mode == PosterMode.VOTING) {
+                                Text("Apply an original voting frame without losing photos, text or stickers.")
+                                ToolRow {
+                                    Tool("No frame") { vm.edit { it.switchVotingFrame(null) } }
+                                    Tool("Green & Gold") { vm.edit { it.switchVotingFrame("green_gold") } }
+                                    Tool("Tagda Muqabla #1") { vm.edit { it.switchVotingFrame("tagda_muqabla") } }
+                                }
+                            }
                             "VS Styles" -> VsTools(document, vm)
                             "Canvas" -> {
                                 ToolRow {
@@ -500,7 +508,10 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                 }
                 Tool("3D Backgrounds") { panel = "3D Backgrounds" }
                 Tool("Elements") { panel = "Elements" }
-                if (document.mode == PosterMode.VOTING) Tool("VS Styles") { panel = "VS Styles" }
+                if (document.mode == PosterMode.VOTING) {
+                    Tool("Frame") { panel = "Frame" }
+                    Tool("VS Styles") { panel = "VS Styles" }
+                }
                 Tool("Layers") { panel = "Layers" }
                 Tool("Canvas") { panel = "Canvas" }
                 Tool("Import image") { pick("new") }
