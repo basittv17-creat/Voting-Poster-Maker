@@ -59,6 +59,12 @@ data class PosterLayer(
     val vignette: Boolean = false,
     val shadowColor: Long? = null,
 ) {
+    /** Restore a photo's visible framing without deleting its original, mask or backdrop. */
+    fun resetPhotoTransform(): PosterLayer = copy(
+        scale = 1f, rotation = 0f, flipX = false, flipY = false,
+        cropZoom = 1f, cropX = 0f, cropY = 0f,
+    )
+
     fun duplicate(): PosterLayer = copy(
         id = UUID.randomUUID().toString(),
         slot = null,
@@ -126,8 +132,12 @@ fun templates(mode: PosterMode): List<PosterTemplate> = if (mode == PosterMode.V
     PosterTemplate("Green & Gold", Backdrop(0xff092b20, 0xff726019), "green_gold"),
     PosterTemplate("Tagda Muqabla #1", Backdrop(0xffef67d2), "tagda_muqabla"),
     PosterTemplate("Red vs Blue", Backdrop(0xff521019, 0xff143d88), title = "CAST YOUR VOTE"),
+    // Original offline color themes; the legacy frame and palettes remain available.
+    PosterTemplate("Teal Community Vote", Backdrop(0xff064e4e, 0xff0f766e), title = "YOUR VOICE MATTERS"),
+    PosterTemplate("Copper vs Navy", Backdrop(0xff9c5b27, 0xff152747), title = "THE CHOICE IS YOURS"),
 ) else listOf(
     PosterTemplate("Midnight Portrait", Backdrop(0xff101d42, 0xff29104d)),
     PosterTemplate("Gold Campaign", Backdrop(0xff17101c, 0xff74541c), title = "YOUR CANDIDATE"),
     PosterTemplate("Electric Announcement", Backdrop(0xff13083a, 0xff1455a7), title = "COMING SOON"),
+    PosterTemplate("Emerald Event", Backdrop(0xff063e37, 0xff24734b), title = "JOIN US"),
 )
