@@ -99,6 +99,24 @@ data class PosterDocument(
 
     fun updateLayer(id: String, change: (PosterLayer) -> PosterLayer) =
         copy(layers = layers.map { if (it.id == id) change(it) else it })
+
+    /** Mirrors the original A/B Reset action: re-centre the photo in its slot,
+     *  while keeping the imported original, cutout and backdrop intact.
+     *  Advanced native flips/crop/rotation are reset as well. */
+    fun resetPhotoToSlot(id: String): PosterDocument {
+        val usesLegacyFrame = layers.any { it.kind == LayerKind.FRAME }
+        return updateLayer(id) { layer ->
+            if (layer.kind != LayerKind.PHOTO) layer else {
+                val originalCenter = when (layer.slot) {
+                    "A" -> (if (usesLegacyFrame) 320f else 310f) to (if (usesLegacyFrame) 410f else 430f)
+                    "B" -> (if (usesLegacyFrame) 880f else 890f) to (if (usesLegacyFrame) 410f else 430f)
+                    "Primary" -> 600f to 430f
+                    else -> layer.x to layer.y
+                }
+                layer.resetPhotoTransform().copy(x = originalCenter.first, y = originalCenter.second)
+            }
+        }
+    }
 }
 
 data class PosterTemplate(val name: String, val background: Backdrop, val frame: String? = null, val title: String? = null) {
