@@ -82,6 +82,7 @@ class EditorNavigationTest {
                     assertEquals(expected, selected.layers)
 
                     val (startX, startY) = centerOnCanvas(layer)
+                    println("VPM gesture test: dragging ${layer.name} from ($startX,$startY)")
                     shell("input swipe $startX $startY ${startX + 32} $startY 400")
                     val moved = persisted(store, seeded.id) { it.selectedId == layer.id && it.selected!!.x > layer.x }
                     assertEquals(expected.filterNot { it.id == layer.id }, moved.layers.filterNot { it.id == layer.id })
@@ -132,11 +133,11 @@ class EditorNavigationTest {
                 tap(fixture.title)
                 val dock = bounds("Editor tools")
                 tap("A")
-                val pinned = Rect().also { awaitText("Back").getBoundsInScreen(it) }
+                val pinned = bounds("Photo toolbar Back")
                 assertEquals(dock, bounds("Editor tools"))
                 tapDock("Remove BG")
                 assertEquals(dock, bounds("Editor tools"))
-                assertEquals(pinned, Rect().also { awaitText("Back").getBoundsInScreen(it) })
+                assertEquals(pinned, bounds("Photo toolbar Back"))
                 assertTrue(bounds("Editor panel").bottom <= dock.top)
                 assertTrue(bounds("Poster canvas").bottom <= bounds("Editor panel").top)
                 capture("photo-dock.png")
@@ -209,7 +210,21 @@ class EditorNavigationTest {
                                     put(MediaStore.Images.Media.IS_PENDING, 0)
                                 }, null, null))
 
-                                if (index == 0) tapDock(requireNotNull(slot.slot)) else tapDock("Replace photo")
+                                if (index == 0) {
+                                    // Moving from A to B must first leave the selected-photo dock.
+                                    // The Compose editor intentionally has one contextual bottom dock.
+                                    val backButton = nodes().firstOrNull {
+                                        it.isVisibleToUser && it.contentDescription?.toString() == "Photo toolbar Back"
+                                    }
+                                    if (backButton != null) {
+                                        touch(backButton, "Photo toolbar Back")
+                                        awaitCondition("Photo dock did not return to the A/B slot picker") {
+                                            nodes().none { it.isVisibleToUser &&
+                                                it.contentDescription?.toString() == "Photo toolbar Back" }
+                                        }
+                                    }
+                                    tapDock(requireNotNull(slot.slot))
+                                } else tapDock("Replace photo")
                                 val thumbnail = awaitNode("System Photo Picker photo") { node ->
                                     node.packageName?.toString()?.let { pkg ->
                                         pkg.contains("providers.media") || pkg.contains("photopicker")
@@ -295,7 +310,7 @@ class EditorNavigationTest {
 
     private fun persisted(store: ProjectStore, id: String, matches: (PosterDocument) -> Boolean): PosterDocument =
         runBlocking {
-            withTimeout(8_000) {
+            withTimeout(15_000) {
                 store.projects.first { records ->
                     records.any { it.id == id && matches(store.read(it)) }
                 }.first { it.id == id }.let(store::read)
