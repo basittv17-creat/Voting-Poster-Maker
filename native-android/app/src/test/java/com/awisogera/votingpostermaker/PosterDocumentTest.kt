@@ -93,6 +93,21 @@ class PosterDocumentTest {
         assertEquals(document, Json.decodeFromString<PosterDocument>(Json.encodeToString(document)))
     }
 
+    @Test fun allTenOriginalTextBackgroundsAreRestoredAndSerializable() {
+        assertEquals(10, legacyTextBackgrounds.size)
+        assertEquals(10, legacyTextBackgrounds.map { it.backdrop }.distinct().size)
+        assertEquals(0xffff416c, legacyTextBackgrounds.first().backdrop.top)
+        assertEquals(0xffff4b2b, legacyTextBackgrounds.first().backdrop.bottom)
+        assertEquals(0xffc31432, legacyTextBackgrounds.last().backdrop.top)
+        assertEquals(0xff240b36, legacyTextBackgrounds.last().backdrop.bottom)
+        val text = PosterLayer(kind = LayerKind.TEXT, name = "Urdu", text = "پاکستان")
+        for (item in legacyTextBackgrounds) {
+            val styled = text.copy(backdrop = item.backdrop)
+            assertEquals(text.id, styled.id)
+            assertEquals(styled, Json.decodeFromString<PosterLayer>(Json.encodeToString(styled)))
+        }
+    }
+
     @Test fun legacyPresetsRetainOriginalCanvasAndSeparateOutlineGlow() {
         assertEquals(11, legacyCanvasPresets.size)
         assertEquals(CanvasPreset("1280 × 1100", 1280, 1100), legacyCanvasPresets.first())
