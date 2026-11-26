@@ -45,3 +45,11 @@ The subsequent documentation-head [run 44998601344](https://github.com/basittv17
 
 
 - [Run 45004817536](https://github.com/basittv17-creat/Voting-Poster-Maker/actions/runs/45004817536) passed both jobs at `5c362b2404731b2d3eddf3a4964a70477d75a8fd`. The API 35 runner reported eight passing tests. System Photo Picker import and replacement passed for A, B and Single, with pixel and layer-isolation assertions. The mask UI test compared, refined, applied and undid a cutout. The engine tests verified brush alpha and color, 3840 × 2880 output, offline segmentation and PNG/JPEG. Source comparison matched eleven legacy dimensions and eight legacy palettes. The follow-up adds two-finger gesture assertions and captures the mask brush dialog in the device artifact.
+
+## Release gate checkpoint — 26 November 2026
+
+- Live refs at review: Capacitor main `5a6616fc988073d6a0a6e4f2e20d253e4a515d89`, native application `534bb34780dc7059e836b85934be27cabb282219`.
+- [Native CI run 45814015475](https://github.com/basittv17-creat/Voting-Poster-Maker/actions/runs/45814015475) passed both verify and API 35 offline-device jobs at the native application commit. [Debug APK](https://github.com/basittv17-creat/Voting-Poster-Maker/actions/runs/45814015475/artifacts/15114219612) · [Device evidence](https://github.com/basittv17-creat/Voting-Poster-Maker/actions/runs/45814015475/artifacts/15115235979).
+- Source check: both application IDs are `com.awisogera.votingpostermaker`; version codes are 11 on main and 12 on native. Both icon files have Git blob `e4686325e1d2364e9bbc81c091e265bb674b4bfa`. The Play-distributed version and installed signer still need verification.
+- A local merge of main into the migration branch completed without conflicts or a native source/workflow diff. It was not pushed. Local Android verification stopped before Gradle ran because the Gradle distribution host was unreachable.
+- Release gate remains open. Complete side-by-side legacy parity, manual Android QA, and production signing with a trusted Play-distributed baseline. Demonstrate install-over, preserved data/gallery, and native release artifacts before switching the main workflow or retiring Capacitor.
