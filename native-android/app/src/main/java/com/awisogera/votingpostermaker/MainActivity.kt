@@ -389,6 +389,26 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                                 }
                             }
                             "Elements" -> ElementTools(vm)
+                            "3D Backgrounds" -> {
+                                val textLayer = selected?.takeIf { it.kind == LayerKind.TEXT && !it.locked }
+                                if (textLayer == null) {
+                                    Text("Select an unlocked text layer to apply one of the original 3D styles.")
+                                    Tool("Add text") {
+                                        vm.add(PosterLayer(kind = LayerKind.TEXT, name = "Text",
+                                            width = 820f, height = 230f, text = "Your headline"))
+                                        panel = "Selection"
+                                    }
+                                } else {
+                                    ToolRow {
+                                        legacyTextPresets.forEach { preset ->
+                                            Tool(preset.title) {
+                                                vm.layer(textLayer.id, preset::applyTo)
+                                                panel = "Selection"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                             "VS Styles" -> VsTools(document, vm)
                             "Canvas" -> {
                                 ToolRow {
@@ -478,6 +498,7 @@ private fun ColumnScope.EditorScreen(document: PosterDocument, vm: EditorViewMod
                     vm.add(PosterLayer(kind = LayerKind.TEXT, name = "Text", width = 820f, height = 230f, text = "Your headline"))
                     panel = "Selection"
                 }
+                Tool("3D Backgrounds") { panel = "3D Backgrounds" }
                 Tool("Elements") { panel = "Elements" }
                 if (document.mode == PosterMode.VOTING) Tool("VS Styles") { panel = "VS Styles" }
                 Tool("Layers") { panel = "Layers" }
